@@ -1,4 +1,4 @@
-name: EthicalCheck-Workflow
+name: 🛠️ EthicalCheck-Workflow
 
 # Controls when the workflow will run
 on:
@@ -31,7 +31,7 @@ jobs:
 
     steps:
       - name: Run OWASP ZAP baseline
-        uses: zaproxy/action-baseline@v0.15.0
+        uses: zaproxy/action-baseline@6c5a007541891231cd9e0ddec25d4f25c59c9874 # v0.15.0
         with:
           target: "http://netbanking.apisec.ai:8080"
           cmd_options: "-a"
