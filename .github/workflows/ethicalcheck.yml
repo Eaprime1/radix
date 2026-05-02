@@ -35,6 +35,7 @@ jobs:
         with:
           target: "http://netbanking.apisec.ai:8080"
           cmd_options: "-a"
+          allow_issue_writing: false
           fail_action: false
 
       - name: Upload scan reports

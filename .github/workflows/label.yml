@@ -19,5 +19,6 @@ jobs:
 
     steps:
     - uses: actions/labeler@v4
+      if: ${{ hashFiles('.github/labeler.yml') != '' }}
       with:
         repo-token: "${{ secrets.GITHUB_TOKEN }}"

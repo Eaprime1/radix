@@ -15,6 +15,12 @@ on:
 
 jobs:
   build:
+    if: >-
+      ${{
+        (secrets.COVERITY_URL != '' && secrets.COVERITY_USER != '' && secrets.COVERITY_PASSPHRASE != '') ||
+        (secrets.BLACKDUCK_URL != '' && secrets.BLACKDUCK_API_TOKEN != '') ||
+        (secrets.POLARIS_SERVER_URL != '' && secrets.POLARIS_ACCESS_TOKEN != '')
+      }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -40,4 +46,3 @@ jobs:
           polaris_server_url: ${{ secrets.POLARIS_SERVER_URL }}
           polaris_access_token: ${{ secrets.POLARIS_ACCESS_TOKEN }}
           polaris_assessment_types: "SCA,SAST"
-
