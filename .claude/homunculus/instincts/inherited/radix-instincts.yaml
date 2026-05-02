@@ -97,12 +97,12 @@ source_repo: https://github.com/Eaprime1/radix
 
 ## Action
 
-Place tests in the tests/ or __tests__/ directory, mirroring src structure
+Keep tests in a consistent, clearly identifiable location that matches the existing repository layout
 
 ## Evidence
 
-- Separate test directory pattern detected
-- Tests live in dedicated test folders
+- Avoid prescribing a test directory structure that is not present in this repository
+- Prefer consistency with the current project organization when adding tests
 
 ---
 id: radix-workflow-update-github-workflow
