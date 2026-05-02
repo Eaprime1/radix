@@ -41,4 +41,5 @@ jobs:
     - name: Test with pytest
       if: ${{ hashFiles('requirements.txt') != '' || hashFiles('**/*.py') != '' }}
       run: |
+        # pytest returns exit code 5 when no tests are collected.
         pytest || [ $? -eq 5 ]

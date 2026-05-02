@@ -48,6 +48,7 @@ permissions:
 jobs:
 
   Trigger_APIsec_scan:
+    # Only run when APIsec credentials are configured.
     if: ${{ secrets.apisec_username != '' && secrets.apisec_password != '' }}
     permissions:
       security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
