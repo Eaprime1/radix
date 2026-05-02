@@ -23,15 +23,15 @@ jobs:
       - name: Check Synopsys credentials
         id: synopsys_creds
         run: |
+          enabled=false
           if [ -n "${{ secrets.COVERITY_URL }}" ] && [ -n "${{ secrets.COVERITY_USER }}" ] && [ -n "${{ secrets.COVERITY_PASSPHRASE }}" ]; then
-            echo "enabled=true" >> "$GITHUB_OUTPUT"
+            enabled=true
           elif [ -n "${{ secrets.BLACKDUCK_URL }}" ] && [ -n "${{ secrets.BLACKDUCK_API_TOKEN }}" ]; then
-            echo "enabled=true" >> "$GITHUB_OUTPUT"
+            enabled=true
           elif [ -n "${{ secrets.POLARIS_SERVER_URL }}" ] && [ -n "${{ secrets.POLARIS_ACCESS_TOKEN }}" ]; then
-            echo "enabled=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            enabled=true
           fi
+          echo "enabled=$enabled" >> "$GITHUB_OUTPUT"
       - name: Checkout
         if: ${{ steps.synopsys_creds.outputs.enabled == 'true' }}
         uses: actions/checkout@v4
