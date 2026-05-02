@@ -1,4 +1,4 @@
-# ECC for Codex CLI
+# ♓ ECC for Codex CLI
 
 This document provides the repo-local ECC baseline for Codex CLI work in this repository.
 

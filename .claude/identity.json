@@ -1,5 +1,6 @@
 {
   "version": "2.0",
+  "icon": "♓",
   "technicalLevel": "technical",
   "preferredStyle": {
     "verbosity": "detailed",
@@ -7,7 +8,9 @@
     "explanations": true
   },
   "domains": [
-    "typescript"
+    "github-actions",
+    "yaml",
+    "ci-cd"
   ],
   "suggestedBy": "ecc-tools-repo-analysis",
   "createdAt": "2026-05-01T08:35:06.766Z"

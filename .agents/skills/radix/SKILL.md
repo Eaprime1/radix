@@ -1,44 +1,30 @@
-```markdown
-# radix Development Patterns
+# ♓ radix Development Patterns
 
 > Auto-generated skill from repository analysis
 
 ## Overview
-This skill teaches the core development patterns, coding conventions, and automated workflows used in the `radix` TypeScript repository. It covers file organization, code style, testing approaches, and how to maintain GitHub Actions workflows. By following these guidelines, contributors can ensure consistency and reliability across the codebase.
+This skill teaches the core development patterns, conventions, and automated workflows used in the `radix` repository. The repository primarily contains GitHub Actions workflows (YAML). It covers workflow file organization, conventions, and how to maintain GitHub Actions workflows. By following these guidelines, contributors can ensure consistency and reliability across the codebase.
 
 ## Coding Conventions
 
 ### File Naming
-- Use **camelCase** for file names.
-  - Example: `userProfile.ts`, `dataFetcher.test.ts`
+- Use **lowercase-kebab-case** for workflow file names.
+  - Example: `ci.yml`, `nextjs.yml`
 
-### Import Style
-- Use **relative imports** for referencing local modules.
-  - Example:
-    ```typescript
-    import { fetchData } from './dataFetcher';
-    ```
-
-### Export Style
-- Use **named exports** rather than default exports.
-  - Example:
-    ```typescript
-    // In userProfile.ts
-    export function getUserProfile(id: string) { ... }
-
-    // In another file
-    import { getUserProfile } from './userProfile';
-    ```
+### Workflow Files
+- Workflow files live in `.github/workflows/`.
+- Use YAML format (`.yml` or `.yaml`).
+- Pin action versions with `@v4` (e.g., `actions/checkout@v4`).
 
 ### Commit Messages
 - Freeform style, typically concise (~56 characters).
-  - Example: `fix: correct typo in userProfile function`
+  - Example: `fix: correct action version in ci workflow`
 
 ## Workflows
 
 ### update-github-workflow
-**Trigger:** When someone wants to modify, fix, or enhance automated workflows in the repository.  
-**Command:** `/update-workflow`
+**Trigger:** When someone wants to modify, fix, or enhance automated workflows in the repository.
+**Command:** `/update-github-workflow`
 
 1. Identify the workflow file(s) in `.github/workflows` that require changes.
 2. Edit the YAML file(s) to update configuration (e.g., change retention, fix actions, add timeouts).
@@ -69,23 +55,11 @@ jobs:
 
 ## Testing Patterns
 
-- Test files use the pattern `*.test.*` (e.g., `userProfile.test.ts`).
-- The specific testing framework is unknown, but follow the file naming convention for tests.
-- Example test file:
-  ```typescript
-  // userProfile.test.ts
-  import { getUserProfile } from './userProfile';
-
-  describe('getUserProfile', () => {
-    it('returns user data for valid id', () => {
-      // test implementation
-    });
-  });
-  ```
+- The repository uses GitHub Actions for CI/CD automation.
+- Workflows are verified by triggering them via push or pull request events.
 
 ## Commands
 
-| Command           | Purpose                                                        |
-|-------------------|----------------------------------------------------------------|
-| /update-workflow  | Initiate or request updates to GitHub Actions workflow files.  |
-```
+| Command                 | Purpose                                                        |
+|-------------------------|----------------------------------------------------------------|
+| /update-github-workflow | Initiate or request updates to GitHub Actions workflow files.  |
