@@ -1,12 +1,7 @@
 ---
 name: update-github-workflow
 description: Workflow command scaffold for update-github-workflow in radix. ♓
-allowed_tools:
-  - Bash
-  - Read
-  - Write
-  - Grep
-  - Glob
+allowed_tools: "Bash, Read, Write, Grep, Glob"
 ---
 
 # /update-github-workflow
