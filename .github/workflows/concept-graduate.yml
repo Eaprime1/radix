@@ -1,0 +1,85 @@
+name: Concept Graduation
+
+on:
+  pull_request:
+    paths:
+      - "concepts/**"
+    types: [closed]
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  log-graduation:
+    name: Log Graduated Concepts
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Find graduated concepts in this merge
+        id: find
+        run: |
+          git fetch origin ${{ github.base_ref }} --depth=2
+          GRADUATED=""
+          while IFS= read -r file; do
+            [ -z "$file" ] && continue
+            STATUS=$(grep '^status:' "$file" | head -1 | sed 's/status: *//')
+            if [ "$STATUS" = "graduated" ]; then
+              TITLE=$(grep '^title:' "$file" | head -1 | sed 's/title: *//' | tr -d '"')
+              ORIGIN=$(grep '^graduated_to:' "$file" | head -1 | sed 's/graduated_to: *//' | tr -d '"')
+              GRADUATED="$GRADUATED|$TITLE|$ORIGIN|$file"
+            fi
+          done < <(git diff --name-only origin/${{ github.base_ref }}...HEAD -- 'concepts/*.md' | grep -v '_template.md' | grep -v 'README.md')
+
+          echo "graduated=$GRADUATED" >> $GITHUB_OUTPUT
+          echo "has_graduations=$([ -n "$GRADUATED" ] && echo true || echo false)" >> $GITHUB_OUTPUT
+
+      - name: Open graduation tracking issue
+        if: steps.find.outputs.has_graduations == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const raw = `${{ steps.find.outputs.graduated }}`;
+            const entries = raw.split('|').filter(Boolean);
+
+            // entries come in triples: title, origin, file
+            const concepts = [];
+            for (let i = 0; i < entries.length; i += 3) {
+              concepts.push({ title: entries[i], origin: entries[i+1], file: entries[i+2] });
+            }
+
+            for (const c of concepts) {
+              const body = [
+                `## Concept Graduated: ${c.title}`,
+                '',
+                `A concept has left the shadow and found its origin.`,
+                '',
+                `| Field | Value |`,
+                `|---|---|`,
+                `| Concept | \`${c.file}\` |`,
+                `| Origin | ${c.origin || '*(not specified)*'} |`,
+                `| Merged PR | #${{ github.event.pull_request.number }} |`,
+                `| Date | ${new Date().toISOString().split('T')[0]} |`,
+                '',
+                '### What this means',
+                '',
+                'The concept is now implemented. This issue tracks any follow-up:',
+                '',
+                '- [ ] Is the concept document in radix still useful as reference, or should it be archived?',
+                '- [ ] Are there child concepts that should now enter the shadow?',
+                '- [ ] Does the origin need a back-reference to this shadow document?',
+                '',
+                '---',
+                '*radix — the root beneath the root*',
+              ].join('\n');
+
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `[graduated] ${c.title}`,
+                body,
+                labels: ['graduated'],
+              });
+            }
