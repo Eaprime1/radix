@@ -131,22 +131,31 @@ Follow the update-github-workflow workflow:
 
 ---
 id: radix-instinct-camelcase-files
-trigger: "When creating or renaming a file in the codebase"
+trigger: "When creating or renaming a JavaScript or TypeScript source file"
 confidence: 0.8
 domain: code-style
 source: repo-analysis
 source_repo: Eaprime1/radix
+repair_notes: |
+  2026-05-04 – Corrected: The original instinct applied camelCase to all files,
+  which conflicts with the repo's actual convention. Workflow and config files under
+  .github/workflows/ use lowercase-kebab-case (e.g. python-app.yml, codeql.yml).
+  Scope narrowed to JS/TS source files only. See also radix-naming-files instinct.
 ---
 
 # Radix Instinct Camelcase Files
 
 ## Action
 
-Name the file using camelCase convention
+Name JavaScript and TypeScript source files using camelCase convention. For workflow
+and configuration files (e.g. under `.github/workflows/`), use lowercase-kebab-case
+to match the established convention in this repository.
 
 ## Evidence
 
-- Pattern in codeStyle.namingConventions.files
+- Pattern in codeStyle.namingConventions.files (scoped to JS/TS source files)
+- Workflow files in .github/workflows/ use lowercase-kebab-case (e.g. python-app.yml, codeql.yml)
+- See radix-naming-files instinct for the general rule
 
 ---
 id: radix-instinct-camelcase-functions
