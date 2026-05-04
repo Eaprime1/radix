@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "navigo": "^8.11.1",
     "next": "15.3.9",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
