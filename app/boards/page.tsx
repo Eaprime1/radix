@@ -65,7 +65,8 @@ export default function BoardsPage() {
     ? SAMPLE_MESSAGES.filter((m) => m.board === selectedBoard)
     : SAMPLE_MESSAGES;
 
-  const msg = boardMessages[Math.min(msgIdx, boardMessages.length - 1)];
+  const hasMessages = boardMessages.length > 0;
+  const msg = hasMessages ? boardMessages[Math.min(msgIdx, boardMessages.length - 1)] : null;
 
   const openBoard = (boardName: string) => {
     setSelectedBoard(boardName);
@@ -78,7 +79,7 @@ export default function BoardsPage() {
       <StatusBar
         left={<><StatusBar.Key>◄ MAIN</StatusBar.Key> <span style={{cursor:"pointer"}} onClick={() => router.push("/")}>[ M ]</span></>}
         center={<span className="fg-bright-cyan">MESSAGE BOARDS</span>}
-        right={<>Msg {msgIdx + 1} of {boardMessages.length}</>}
+        right={<>Msg {hasMessages ? msgIdx + 1 : 0} of {boardMessages.length}</>}
       />
 
       {view === "list" ? (
@@ -109,7 +110,7 @@ export default function BoardsPage() {
             <span className="fg-white"> Quit</span>
           </div>
         </BoxPanel>
-      ) : (
+      ) : hasMessages && msg ? (
         <BoxPanel title={`${msg.board} — MSG ${msg.msgNum} OF ${msg.total}`} style="double" width={78}>
           <MessageHeader meta={msg} />
           <div className="msg-body">
@@ -128,10 +129,23 @@ export default function BoardsPage() {
             onQuit={() => setView("list")}
           />
         </BoxPanel>
+      ) : (
+        <BoxPanel title={`${selectedBoard ?? "BOARD"} — NO MESSAGES`} style="double" width={78}>
+          <div className="msg-body fg-bright-black">No messages posted yet.</div>
+          <HRule width={78} />
+          <div className="prompt-line">
+            <span
+              className="fg-bright-cyan"
+              style={{ cursor: "pointer" }}
+              onClick={() => setView("list")}
+            >[Q]</span>
+            <span className="fg-white"> Back to boards</span>
+          </div>
+        </BoxPanel>
       )}
 
       <StatusBar
-        left={<>Board: <StatusBar.Key>{view === "read" ? msg.board : "ALL"}</StatusBar.Key></>}
+        left={<>Board: <StatusBar.Key>{view === "read" ? (selectedBoard ?? "ALL") : "ALL"}</StatusBar.Key></>}
         center={view === "read" ? <span className="fg-bright-green">READING</span> : <span>SELECT BOARD</span>}
         right={<>Unread: <StatusBar.Key>{boardMessages.filter(m => !m.read).length}</StatusBar.Key></>}
       />

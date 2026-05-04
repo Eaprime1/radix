@@ -258,6 +258,15 @@ html, body {
 }
 .hline-bright { color: var(--ansi-bright-blue); }
 
+/* ── Terminal footer ────────────────────────────────────────────────────── */
+.terminal-footer {
+  text-align: center;
+  padding: 0.4em 0;
+  color: var(--ansi-bright-black);
+  font-size: var(--font-size-sm);
+  letter-spacing: 0.1ch;
+}
+
 /* ── Scrollbar styling ───────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 8px; background: var(--ansi-black); }
 ::-webkit-scrollbar-thumb { background: var(--ansi-blue); }

@@ -12,6 +12,7 @@ export default function Terminal({ children, crt = true, className = "" }: Termi
     <div className={`${crt ? "crt" : ""} ${className}`}>
       <div className="screen">
         {children}
+        <div className="terminal-footer">♓</div>
       </div>
     </div>
   );
