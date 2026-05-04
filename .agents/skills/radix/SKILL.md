@@ -14,7 +14,7 @@ This skill teaches the core development patterns, conventions, and automated wor
 ### Workflow Files
 - Workflow files live in `.github/workflows/`.
 - Use YAML format (`.yml` or `.yaml`).
-- Pin action versions with `@v4` (e.g., `actions/checkout@v4`).
+- Pin action versions with a commit SHA (e.g., actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683).
 
 ### Commit Messages
 - Freeform style, typically concise (~56 characters).
