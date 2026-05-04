@@ -37,12 +37,12 @@ source_repo: https://github.com/Eaprime1/radix
 
 ## Action
 
-Use camelCase naming convention
+Follow the naming convention already used in the relevant directory; prefer lowercase-kebab-case for workflow/config files (for example under `.github/workflows/`) and only use camelCase where nearby files already follow that pattern
 
 ## Evidence
 
 - Analyzed file naming patterns in repository
-- Dominant pattern: camelCase
+- Naming conventions vary by area; workflow files use lowercase-kebab-case, so file names should match local conventions instead of assuming camelCase globally
 
 ---
 id: radix-import-relative
