@@ -45,6 +45,8 @@ jobs:
         id: validate
         if: steps.concepts.outputs.count != '0'
         shell: bash
+        env:
+          CONCEPT_FILES: ${{ steps.concepts.outputs.files }}
         run: |
           ERRORS=""
           STATUSES=""
@@ -70,7 +72,7 @@ jobs:
             fi
 
             STATUSES="${STATUSES}\n| \`$(basename "$file")\` | ${STATUS:-unknown} | ${TITLE:-untitled} |"
-          done <<< "${{ steps.concepts.outputs.files }}"
+          done <<< "$CONCEPT_FILES"
 
           {
             echo "errors<<RADIX_EOF"
@@ -87,11 +89,15 @@ jobs:
       - name: Post review comment
         if: steps.concepts.outputs.count != '0'
         uses: actions/github-script@v7
+        env:
+          VALIDATE_ERRORS:   ${{ steps.validate.outputs.errors }}
+          VALIDATE_STATUSES: ${{ steps.validate.outputs.statuses }}
+          CONCEPTS_COUNT:    ${{ steps.concepts.outputs.count }}
         with:
           script: |
-            const errors  = `${{ steps.validate.outputs.errors }}`.trim();
-            const statuses = `${{ steps.validate.outputs.statuses }}`.trim();
-            const count   = Number(`${{ steps.concepts.outputs.count }}`);
+            const errors   = (process.env.VALIDATE_ERRORS  || '').trim();
+            const statuses = (process.env.VALIDATE_STATUSES || '').trim();
+            const count    = Number(process.env.CONCEPTS_COUNT || '0');
 
             const statusIcon = errors ? '⛔' : '✅';
             const statusLine = errors
