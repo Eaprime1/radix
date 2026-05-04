@@ -1,6 +1,5 @@
 # Aspirational: Deploy Radix documentation as a static site to GitHub Pages
 # Triggered manually only — activate once a Next.js/static site is added to the repo.
-# See: Drive/radix/Radix Shadow Aspect Guide for the documentation architecture.
 
 name: Deploy Next.js site to Pages
 

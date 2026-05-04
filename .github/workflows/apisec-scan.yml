@@ -20,6 +20,7 @@ permissions:
 jobs:
   Trigger_APIsec_scan:
     permissions:
+      contents: read
       security-events: write
       actions: read
     runs-on: ubuntu-latest
