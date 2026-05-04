@@ -1,0 +1,131 @@
+name: Radix First Review
+
+on:
+  pull_request:
+    paths:
+      - "concepts/**"
+    types: [opened, synchronize, reopened]
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  review:
+    name: Shadow Review
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Find changed concept files
+        id: concepts
+        run: |
+          git fetch origin ${{ github.base_ref }} --depth=1
+          CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- 'concepts/*.md' | grep -v '_template.md' | grep -v 'README.md' || true)
+          echo "files<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGED" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          echo "count=$(echo "$CHANGED" | grep -c '.md' || echo 0)" >> $GITHUB_OUTPUT
+
+      - name: Validate concept frontmatter
+        id: validate
+        if: steps.concepts.outputs.count != '0'
+        run: |
+          ERRORS=""
+          STATUSES=""
+          while IFS= read -r file; do
+            [ -z "$file" ] && continue
+            TITLE=$(grep '^title:' "$file" | head -1 | sed 's/title: *//' | tr -d '"')
+            STATUS=$(grep '^status:' "$file" | head -1 | sed 's/status: *//')
+            ENTERED=$(grep '^entered:' "$file" | head -1 | sed 's/entered: *//')
+
+            if [ -z "$TITLE" ]; then
+              ERRORS="$ERRORS\n- \`$file\`: missing title"
+            fi
+            if [ -z "$STATUS" ]; then
+              ERRORS="$ERRORS\n- \`$file\`: missing status"
+            elif ! echo "$STATUS" | grep -qE '^(shadow|emerging|graduated)$'; then
+              ERRORS="$ERRORS\n- \`$file\`: invalid status \`$STATUS\` (must be shadow, emerging, or graduated)"
+            fi
+            if [ -z "$ENTERED" ]; then
+              ERRORS="$ERRORS\n- \`$file\`: missing entered date"
+            fi
+
+            STATUSES="$STATUSES\n| \`$(basename $file)\` | $STATUS | $TITLE |"
+          done <<< "${{ steps.concepts.outputs.files }}"
+
+          echo "errors<<EOF" >> $GITHUB_OUTPUT
+          printf "%b" "$ERRORS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          echo "statuses<<EOF" >> $GITHUB_OUTPUT
+          printf "%b" "$STATUSES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Post review comment
+        if: steps.concepts.outputs.count != '0'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const files = `${{ steps.concepts.outputs.files }}`.trim().split('\n').filter(Boolean);
+            const errors = `${{ steps.validate.outputs.errors }}`.trim();
+            const statuses = `${{ steps.validate.outputs.statuses }}`.trim();
+
+            const statusIcon = errors ? '⛔' : '✅';
+            const statusLine = errors
+              ? 'Validation failed — fix the issues below before merging.'
+              : 'All concept files are structurally valid.';
+
+            const body = [
+              `## ${statusIcon} Radix First Review`,
+              '',
+              statusLine,
+              '',
+              '### Changed Concepts',
+              '',
+              '| File | Status | Title |',
+              '|---|---|---|',
+              statuses,
+              '',
+              errors ? '### Validation Errors\n' + errors + '\n' : '',
+              '### Review Checklist',
+              '',
+              'Shadow layer review — check before merging:',
+              '',
+              '- [ ] Does the concept have enough pressure to be named, or is it still formless?',
+              '- [ ] Are the **open questions** honest — not rhetorical, but genuinely unresolved?',
+              '- [ ] Are **connections** to other concepts and systems noted?',
+              '- [ ] If status is `graduated` — is `graduated_to` filled in and does that origin exist?',
+              '- [ ] If status is `emerging` — is there enough form here that it could graduate in the next session?',
+              '- [ ] Does this concept belong in the shadow, or is it actually already someone else\'s origin?',
+              '',
+              '---',
+              '*radix — the root beneath the root*',
+            ].join('\n');
+
+            // Find and update existing review comment if present
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const existing = comments.find(c =>
+              c.user.login === 'github-actions[bot]' &&
+              c.body.includes('Radix First Review')
+            );
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
