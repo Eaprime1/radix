@@ -7,7 +7,6 @@ import BoxPanel, { HRule } from "@/components/bbs/BoxPanel";
 import MessageHeader, { MessageMeta } from "@/components/bbs/MessageHeader";
 import { MorePrompt } from "@/components/bbs/Prompt";
 import { SYSINFO } from "@/lib/sysinfo";
-import { BOX } from "@/lib/box";
 
 const SAMPLE_MESSAGES: (MessageMeta & { body: string })[] = [
   {
@@ -127,7 +126,7 @@ export default function BoardsPage() {
       )}
 
       <StatusBar
-        left={<>Board: <StatusBar.Key>{msg.board}</StatusBar.Key></>}
+        left={<>Board: <StatusBar.Key>{view === "read" ? msg.board : "ALL"}</StatusBar.Key></>}
         center={view === "read" ? <span className="fg-bright-green">READING</span> : <span>SELECT BOARD</span>}
         right={<>Unread: <StatusBar.Key>2</StatusBar.Key></>}
       />

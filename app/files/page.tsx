@@ -21,7 +21,7 @@ export default function FilesPage() {
 
       <BoxPanel title="FILE LIBRARY" style="double" width={78}>
         <FileList
-          files={SYSINFO.files as unknown as import("@/components/bbs/FileList").FileEntry[]}
+          files={SYSINFO.files}
           onSelect={(f) => setSelected(f.id)}
         />
         <HRule width={78} />

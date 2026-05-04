@@ -1,5 +1,4 @@
 "use client";
-import { ReactNode } from "react";
 
 export interface MenuItem {
   key: string;
@@ -21,10 +20,6 @@ export default function Menu({ items, columns = 1, onSelect }: MenuProps) {
     item.onClick?.();
     onSelect?.(item);
   };
-
-  const rows = columns === 2
-    ? chunk(items, Math.ceil(items.length / 2))
-    : items.map(i => [i]);
 
   return (
     <ul className="menu-list" style={columns === 2 ? { columns: 2, columnGap: "4ch" } : {}}>
@@ -49,8 +44,3 @@ export default function Menu({ items, columns = 1, onSelect }: MenuProps) {
   );
 }
 
-function chunk<T>(arr: T[], size: number): T[][] {
-  const out: T[][] = [];
-  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
-  return out;
-}

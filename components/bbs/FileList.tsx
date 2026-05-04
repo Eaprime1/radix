@@ -7,7 +7,7 @@ export interface FileEntry {
 }
 
 interface FileListProps {
-  files: FileEntry[];
+  files: readonly FileEntry[];
   onSelect?: (file: FileEntry) => void;
 }
 
