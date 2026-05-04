@@ -1,0 +1,18 @@
+# Next.js
+.next/
+out/
+node_modules/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# env
+.env
+.env.local
+.env.*.local
+
+# editor
+.idea/
+.vscode/
+*.swp
