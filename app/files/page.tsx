@@ -4,12 +4,20 @@ import { useRouter } from "next/navigation";
 import Terminal from "@/components/bbs/Terminal";
 import StatusBar from "@/components/bbs/StatusBar";
 import BoxPanel, { HRule } from "@/components/bbs/BoxPanel";
-import FileList from "@/components/bbs/FileList";
+import FileList, { FileEntry } from "@/components/bbs/FileList";
 import { SYSINFO } from "@/lib/sysinfo";
+
+type FileAction = "download" | "view" | null;
 
 export default function FilesPage() {
   const router = useRouter();
-  const [selected, setSelected] = useState<number | null>(null);
+  const [selected, setSelected] = useState<FileEntry | null>(null);
+  const [action, setAction] = useState<FileAction>(null);
+
+  const handleSelect = (f: FileEntry) => {
+    setSelected(f);
+    setAction(null);
+  };
 
   return (
     <Terminal>
@@ -20,20 +28,32 @@ export default function FilesPage() {
       />
 
       <BoxPanel title="FILE LIBRARY" style="double" width={78}>
-        <FileList
-          files={SYSINFO.files}
-          onSelect={(f) => setSelected(f.id)}
-        />
+        <FileList files={SYSINFO.files} onSelect={handleSelect} />
         <HRule width={78} />
-        <div className="prompt-line">
+        <div className="prompt-line" style={{ flexWrap: "wrap", gap: "0.5ch" }}>
           {selected !== null ? (
             <>
-              <span className="fg-bright-yellow">File #{selected} selected — </span>
-              <span className="fg-bright-green">[D] Download  </span>
-              <span className="fg-white">  [V] View info  </span>
+              <span className="fg-bright-yellow">#{selected.id} {selected.name} — </span>
+              <span
+                className="fg-bright-green"
+                style={{ cursor: "pointer" }}
+                onClick={() => setAction("download")}
+              >[D] Download</span>
+              <span className="fg-white">  </span>
+              <span
+                className="fg-bright-cyan"
+                style={{ cursor: "pointer" }}
+                onClick={() => setAction("view")}
+              >[V] View info</span>
+              {action === "download" && (
+                <span className="fg-bright-black"> — transfers active when telegard bridge is live</span>
+              )}
+              {action === "view" && (
+                <span className="fg-white"> — {selected.desc} ({selected.size})</span>
+              )}
             </>
           ) : (
-            <span className="fg-white">Select a file to download</span>
+            <span className="fg-white">Select a file</span>
           )}
           <span
             className="fg-bright-red"

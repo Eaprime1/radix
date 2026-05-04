@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef, KeyboardEvent } from "react";
+import { useState, useEffect, KeyboardEvent } from "react";
 
 interface PromptProps {
   label: string;
@@ -40,6 +40,15 @@ export default function Prompt({ label, options, onSubmit, autoFocus, maxLength 
 }
 
 export function MorePrompt({ onContinue, onQuit }: { onContinue: () => void; onQuit: () => void }) {
+  useEffect(() => {
+    const handler = (e: globalThis.KeyboardEvent) => {
+      if (e.key === " " || e.key === "Enter") { e.preventDefault(); onContinue(); }
+      if (e.key === "q" || e.key === "Q") onQuit();
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [onContinue, onQuit]);
+
   return (
     <div className="prompt-line">
       <span className="fg-bright-yellow">── More? </span>

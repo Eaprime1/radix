@@ -3,7 +3,6 @@
 export interface MenuItem {
   key: string;
   label: string;
-  href?: string;
   onClick?: () => void;
   disabled?: boolean;
 }
@@ -43,4 +42,3 @@ export default function Menu({ items, columns = 1, onSelect }: MenuProps) {
     </ul>
   );
 }
-

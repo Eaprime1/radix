@@ -11,7 +11,7 @@ import { SYSINFO } from "@/lib/sysinfo";
 const SAMPLE_MESSAGES: (MessageMeta & { body: string })[] = [
   {
     from: "UNEXUSI", to: "ALL", subject: "WELCOME TO RADIX",
-    date: "05-04-26 00:00", msgNum: 1, total: 3, board: "GENERAL",
+    date: "05-04-26 00:00", msgNum: 1, total: 1, board: "GENERAL",
     read: false,
     body:
 `This is the shadow layer.
@@ -26,7 +26,7 @@ Welcome aboard.
   },
   {
     from: "ARCHIVIST", to: "ALL", subject: "ON THE NATURE OF SHADOWS",
-    date: "05-04-26 01:33", msgNum: 2, total: 3, board: "PHILOSOPHY",
+    date: "05-04-26 01:33", msgNum: 1, total: 1, board: "PHILOSOPHY",
     read: false,
     body:
 `> The shadow is not the absence of light.
@@ -41,7 +41,7 @@ We are continuing that tradition.`,
   },
   {
     from: "SYSTEM", to: "ALL", subject: "TELEGARD / RADIX INTEGRATION NOTE",
-    date: "05-04-26 03:00", msgNum: 3, total: 3, board: "TECH / SYSTEMS",
+    date: "05-04-26 03:00", msgNum: 1, total: 1, board: "TECH / SYSTEMS",
     read: true,
     body:
 `telegard_UNEXUSI is the engine.
@@ -59,15 +59,26 @@ export default function BoardsPage() {
   const router = useRouter();
   const [msgIdx, setMsgIdx] = useState(0);
   const [view, setView] = useState<"list" | "read">("list");
+  const [selectedBoard, setSelectedBoard] = useState<string | null>(null);
 
-  const msg = SAMPLE_MESSAGES[msgIdx];
+  const boardMessages = selectedBoard
+    ? SAMPLE_MESSAGES.filter((m) => m.board === selectedBoard)
+    : SAMPLE_MESSAGES;
+
+  const msg = boardMessages[Math.min(msgIdx, boardMessages.length - 1)];
+
+  const openBoard = (boardName: string) => {
+    setSelectedBoard(boardName);
+    setMsgIdx(0);
+    setView("read");
+  };
 
   return (
     <Terminal>
       <StatusBar
         left={<><StatusBar.Key>◄ MAIN</StatusBar.Key> <span style={{cursor:"pointer"}} onClick={() => router.push("/")}>[ M ]</span></>}
         center={<span className="fg-bright-cyan">MESSAGE BOARDS</span>}
-        right={<>Msg {msgIdx + 1} of {SAMPLE_MESSAGES.length}</>}
+        right={<>Msg {msgIdx + 1} of {boardMessages.length}</>}
       />
 
       {view === "list" ? (
@@ -78,7 +89,7 @@ export default function BoardsPage() {
                 key={b.id}
                 className="file-row"
                 style={{ cursor: "pointer" }}
-                onClick={() => setView("read")}
+                onClick={() => openBoard(b.name)}
               >
                 <span className="fg-bright-black" style={{ minWidth: "3ch" }}>{b.id}</span>
                 <span className="file-name">{b.name}</span>
@@ -89,13 +100,7 @@ export default function BoardsPage() {
           </div>
           <HRule width={78} />
           <div className="prompt-line">
-            <span className="fg-bright-yellow">Enter board # or </span>
-            <span
-              className="fg-bright-cyan"
-              style={{ cursor: "pointer" }}
-              onClick={() => setView("read")}
-            >[R]</span>
-            <span className="fg-white"> Read messages  </span>
+            <span className="fg-bright-yellow">Select a board to read  </span>
             <span
               className="fg-bright-cyan"
               style={{ cursor: "pointer" }}
@@ -117,7 +122,7 @@ export default function BoardsPage() {
           <HRule width={78} />
           <MorePrompt
             onContinue={() => {
-              if (msgIdx < SAMPLE_MESSAGES.length - 1) setMsgIdx(i => i + 1);
+              if (msgIdx < boardMessages.length - 1) setMsgIdx(i => i + 1);
               else setView("list");
             }}
             onQuit={() => setView("list")}
@@ -128,7 +133,7 @@ export default function BoardsPage() {
       <StatusBar
         left={<>Board: <StatusBar.Key>{view === "read" ? msg.board : "ALL"}</StatusBar.Key></>}
         center={view === "read" ? <span className="fg-bright-green">READING</span> : <span>SELECT BOARD</span>}
-        right={<>Unread: <StatusBar.Key>2</StatusBar.Key></>}
+        right={<>Unread: <StatusBar.Key>{boardMessages.filter(m => !m.read).length}</StatusBar.Key></>}
       />
     </Terminal>
   );

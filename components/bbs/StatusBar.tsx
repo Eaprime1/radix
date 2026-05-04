@@ -1,3 +1,5 @@
+import React from "react";
+
 interface StatusBarProps {
   left?: React.ReactNode;
   center?: React.ReactNode;
@@ -12,7 +14,7 @@ function Sep() {
   return <span className="sep">│</span>;
 }
 
-export default function StatusBar({ left, center, right }: StatusBarProps) {
+function StatusBarFn({ left, center, right }: StatusBarProps) {
   return (
     <div className="statusbar">
       <span>{left}</span>
@@ -22,5 +24,5 @@ export default function StatusBar({ left, center, right }: StatusBarProps) {
   );
 }
 
-StatusBar.Key = Key;
-StatusBar.Sep = Sep;
+const StatusBar = Object.assign(StatusBarFn, { Key, Sep });
+export default StatusBar;

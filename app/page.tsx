@@ -98,7 +98,7 @@ export default function MainMenu() {
       <StatusBar
         left={<>Calls: <StatusBar.Key>1,144</StatusBar.Key></>}
         center={<>Msgs: <StatusBar.Key>412</StatusBar.Key><StatusBar.Sep />Files: <StatusBar.Key>4</StatusBar.Key></>}
-        right={<>Time Left: <StatusBar.Key>59 min</StatusBar.Key></>}
+        right={<>Time Left: <StatusBar.Key>59 min</StatusBar.Key><StatusBar.Sep />♓</>}
       />
     </Terminal>
   );

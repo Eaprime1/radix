@@ -59,7 +59,7 @@ export default function SystemPage() {
             components — menus, message headers, file listings, prompts.
           </div>
           <div style={{ marginTop: "0.3em", color: "var(--ansi-bright-cyan)" }}>
-            {BOX.misc.arrow_r} The root beneath the root.
+            {BOX.misc.arrow_r} The root beneath the root. &nbsp;♓
           </div>
         </div>
       </BoxPanel>
