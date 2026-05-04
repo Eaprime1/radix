@@ -34,9 +34,12 @@ Graduated. Living in this repo as source code:
 
 ## Open questions
 
-- WebSocket integration with telegard Python backend (next major milestone)
-- Real ANSI art file renderer (`.ans` / `.asc` files from the file library)
-- Auth flow — handle + password entry via Prompt component
+- How should live data change the design system? Does a real-time BBS need
+  components that the static design doesn't have yet?
+- What is the right scope for the ANSI art renderer — full VT100/ANSI parser,
+  or a constrained subset sufficient for `.ans`/`.asc` art files?
+- Should the design system own auth UI state, or should Prompt remain purely
+  presentational and let telegard-radix-bridge manage session logic?
 
 ## Connections
 
