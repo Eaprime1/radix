@@ -12,11 +12,13 @@ jobs:
   label:
 
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     permissions:
       contents: read
       pull-requests: write
 
     steps:
     - uses: actions/labeler@v4
+      if: ${{ hashFiles('.github/labeler.yml') != '' }}
       with:
         repo-token: "${{ secrets.GITHUB_TOKEN }}"
