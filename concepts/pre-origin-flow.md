@@ -97,3 +97,6 @@ Search directions suggested by the session:
 The pressure that brought this concept into shadow: we needed to describe
 where contributions come from before they arrive. The pre-processor needed
 a theoretical foundation.
+
+---
+*♓*

@@ -71,3 +71,6 @@ repositories, keeping the entire forest healthy and updated."
 
 The key insight: sync only the operational layer, never the content layer.
 The seed provides form; the child provides substance.
+
+---
+*♓*

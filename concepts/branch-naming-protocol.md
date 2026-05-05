@@ -105,3 +105,6 @@ Unicode input:
 
 The eternity sign choice is not arbitrary — it resonates with the radix
 principle that origins are cycles, not lines.
+
+---
+*♓*
