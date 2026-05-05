@@ -30,8 +30,8 @@ jobs:
             const owner = context.repo.owner;
             const repo  = context.repo.repo;
 
-            // Resolve PR number from either event type
-            const prNum = github.event_name === 'pull_request_review'
+            // Resolve PR number — context.eventName is correct in github-script
+            const prNum = context.eventName === 'pull_request_review'
               ? context.payload.pull_request.number
               : context.payload.issue.number;
 
@@ -40,10 +40,17 @@ jobs:
               owner, repo, pull_number: prNum,
             });
 
-            // Fetch changed files
-            const { data: files } = await github.rest.pulls.listFiles({
-              owner, repo, pull_number: prNum, per_page: 100,
-            });
+            // Fetch ALL changed files with pagination (listFiles caps at 100/page)
+            let files = [];
+            let page = 1;
+            while (true) {
+              const { data: batch } = await github.rest.pulls.listFiles({
+                owner, repo, pull_number: prNum, per_page: 100, page,
+              });
+              files = files.concat(batch);
+              if (batch.length < 100) break;
+              page++;
+            }
 
             const findings = [];
             const passes   = [];
@@ -72,7 +79,9 @@ jobs:
             }
 
             // ── Concept file validation ───────────────────────────────────
+            // Exclude removed files — getContent on a deleted path will 404
             const conceptFiles = files
+              .filter(f => f.status !== 'removed')
               .map(f => f.filename)
               .filter(f =>
                 f.startsWith('concepts/') &&
@@ -81,12 +90,17 @@ jobs:
                 !f.endsWith('README.md')
               );
 
+            // For fork PRs the head commit lives in the fork repo, not context.repo
+            const contentOwner = pr.head.repo.owner.login;
+            const contentRepo  = pr.head.repo.name;
+
             if (conceptFiles.length > 0) {
               for (const filepath of conceptFiles) {
                 let content = '';
                 try {
                   const { data } = await github.rest.repos.getContent({
-                    owner, repo, path: filepath, ref: pr.head.sha,
+                    owner: contentOwner, repo: contentRepo,
+                    path: filepath, ref: pr.head.sha,
                   });
                   content = Buffer.from(data.content, 'base64').toString('utf8');
                 } catch (e) {
@@ -100,18 +114,27 @@ jobs:
                   return m ? m[1].trim().replace(/^"|"$/g, '') : '';
                 };
 
-                const cTitle   = get('title');
-                const status  = get('status');
-                const entered = get('entered');
-                const name    = filepath.split('/').pop();
+                const cTitle      = get('title');
+                const status      = get('status');
+                const entered     = get('entered');
+                const graduatedTo = get('graduated_to');
+                const graduatedOn = get('graduated_on');
+                const name        = filepath.split('/').pop();
 
-                const valid = ['shadow','emerging','graduated'];
-                if (!cTitle)  findings.push(`\`${name}\`: missing \`title\``);
-                if (!status)  findings.push(`\`${name}\`: missing \`status\``);
+                const valid = ['shadow', 'emerging', 'graduated'];
+                if (!cTitle) findings.push(`\`${name}\`: missing \`title\``);
+                if (!status) findings.push(`\`${name}\`: missing \`status\``);
                 else if (!valid.includes(status))
                   findings.push(`\`${name}\`: invalid status \`${status}\``);
                 if (!entered || entered === 'YYYY-MM-DD')
                   findings.push(`\`${name}\`: missing or placeholder \`entered\` date`);
+                // Graduated concepts must have destination and date
+                if (status === 'graduated') {
+                  if (!graduatedTo)
+                    findings.push(`\`${name}\`: graduated but \`graduated_to\` is empty`);
+                  if (!graduatedOn || graduatedOn === 'YYYY-MM-DD')
+                    findings.push(`\`${name}\`: graduated but \`graduated_on\` is empty`);
+                }
 
                 table.push(`| \`${name}\` | ${status || '—'} | ${cTitle || '—'} |`);
               }
@@ -180,17 +203,24 @@ jobs:
 
             const body = lines.join('\n');
 
-            // Upsert comment
-            const { data: comments } = await github.rest.issues.listComments({
-              owner, repo, issue_number: prNum,
-            });
-            const existing = comments.find(c =>
-              c.user.login === 'github-actions[bot]' &&
-              c.body.includes('Final Review')
-            );
-            if (existing) {
+            // Upsert PR comment — paginate to find existing bot comment
+            let existingComment = null;
+            let commentPage = 1;
+            while (!existingComment) {
+              const { data: batch } = await github.rest.issues.listComments({
+                owner, repo, issue_number: prNum, per_page: 100, page: commentPage,
+              });
+              existingComment = batch.find(c =>
+                c.user.login === 'github-actions[bot]' &&
+                c.body.includes('Final Review')
+              );
+              if (batch.length < 100) break;
+              commentPage++;
+            }
+
+            if (existingComment) {
               await github.rest.issues.updateComment({
-                owner, repo, comment_id: existing.id, body,
+                owner, repo, comment_id: existingComment.id, body,
               });
             } else {
               await github.rest.issues.createComment({
@@ -198,27 +228,33 @@ jobs:
               });
             }
 
-            // If findings exist, open a tracking issue
+            // Open tracking issue only if findings exist AND no open issue already exists for this PR
             if (!clean) {
-              await github.rest.issues.create({
-                owner, repo,
-                title: `[review] ${title} — items from final review`,
-                body: [
-                  `Final review of PR #${prNum} found items requiring attention.`,
-                  '',
-                  '### Findings',
-                  '',
-                  ...findings.map(f => `- ${f}`),
-                  '',
-                  `See PR #${prNum} for full context.`,
-                  '',
-                  '---',
-                  '*⊕ radix final review*',
-                ].join('\n'),
-                labels: ['review'],
+              const issueTitle = `[review] PR #${prNum} — items from final review`;
+              const { data: existingIssues } = await github.rest.issues.listForRepo({
+                owner, repo, state: 'open', labels: 'review', per_page: 50,
               });
-            }
+              const alreadyOpen = existingIssues.some(i => i.title === issueTitle);
 
-            if (!clean) {
+              if (!alreadyOpen) {
+                await github.rest.issues.create({
+                  owner, repo,
+                  title: issueTitle,
+                  body: [
+                    `Final review of PR #${prNum} found items requiring attention.`,
+                    '',
+                    '### Findings',
+                    '',
+                    ...findings.map(f => `- ${f}`),
+                    '',
+                    `See PR #${prNum} for full context.`,
+                    '',
+                    '---',
+                    '*⊕ radix final review*',
+                  ].join('\n'),
+                  labels: ['review'],
+                });
+              }
+
               core.warning(`Final review found ${findings.length} item(s).`);
             }

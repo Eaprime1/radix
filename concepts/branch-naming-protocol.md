@@ -96,9 +96,12 @@ Open: which approach fits the team's tolerance for ceremony vs. friction?
 *2026-05-05* — entered shadow. The symbols were the user's idea. The encoding
 semantics (inward = developing, outward = deployed) came from the session.
 
-Alt codes (Windows): ֍ = Alt+1421, ֎ = Alt+1422 (decimal).
-Unicode input (Linux): Ctrl+Shift+U, then 058D or 058E, then Enter.
-On mobile: save both to a text replacement or notes shortcut.
+Unicode input:
+- **Windows**: open Character Map (`charmap.exe`), search "Armenian eternity", copy-paste.
+  Or in Word/Office: type `058D` then Alt+X to convert in-place.
+- **Linux**: Ctrl+Shift+U, type `058d` or `058e`, then Enter.
+- **Mac**: use the Unicode Hex Input keyboard (⌥ + 058D / 058E).
+- **All platforms**: copy from here — ֍ ֎ — and save to a text snippet/shortcut.
 
 The eternity sign choice is not arbitrary — it resonates with the radix
 principle that origins are cycles, not lines.

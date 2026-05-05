@@ -49,7 +49,7 @@ When you create a new repo from this template, radix gives you:
 - The `radix-review` and `claude-final-review` GitHub Actions workflows
 
 **GitHub templates do not cascade updates.** The `sync-to-seed` concept
-(currently in shadow) will provide a workflow to pull core workflow updates
+(currently emerging) will provide a workflow to pull core workflow updates
 from radix into child repos when it graduates.
 
 ### Seed instructions for new repos
