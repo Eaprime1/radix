@@ -32,8 +32,10 @@ Not yet implemented. The pattern would involve:
 
 1. A dispatch event in radix (`workflow_dispatch` or push to radix branch)
 2. A manifest file listing all child repositories (`seeds.yml`)
-3. The sync step: for each child repo, open a PR with the updated workflow files
-   using the GitHub API (`create_or_update_file` per changed file, then `create_pull_request`)
+3. The sync step: for each child repo, use the **Git Data API** to create a single
+   atomic commit (create blobs → create tree → create commit → update ref),
+   then open a PR pointing at that branch. This avoids the multiple-commits-per-file
+   problem of calling `create_or_update_file` in a loop.
 4. Child repos can opt out per-file via a `.radixignore` in `.github/`
 
 Files to sync (candidates):

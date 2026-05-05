@@ -79,6 +79,10 @@ Open: which approach fits the team's tolerance for ceremony vs. friction?
 - Should `֎name֎` → `֍name֍` be triggered by a GitHub deploy event, a manual workflow dispatch, or a PR merge to a specific branch?
 - Do third-party tools (Vercel, CI, Codacy) handle Unicode branch names without issues?
 - Is `֎name֎` too subtle to read at a glance in the GitHub UI, or does it stand out enough?
+- **CI/CD tooling risk**: Git supports non-ASCII refs per spec, but shell scripts,
+  Windows filesystems, and some CI runners may not. Test on all target environments
+  before adopting. Fallback option: keep branch names ASCII-safe and carry the
+  symbol semantics via a GitHub label or tag instead.
 - What is the alt-code / emoji keyboard path for contributors who don't have the symbols memorized?
 
 ## Connections
