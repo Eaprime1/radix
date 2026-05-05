@@ -78,7 +78,11 @@ jobs:
     # needs: crda-scan
     name: Build and deploy to OpenShift
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     environment: production
+    permissions:
+      contents: read
+      packages: write
 
     outputs:
       ROUTE: ${{ steps.deploy-and-expose.outputs.route }}
@@ -125,6 +129,8 @@ jobs:
 
     - name: Check out repository
       uses: actions/checkout@v4
+      with:
+        persist-credentials: false
 
     - name: Determine app name
       if: env.APP_NAME == ''
