@@ -1,0 +1,224 @@
+name: Claude Final Review
+
+on:
+  issue_comment:
+    types: [created]
+  pull_request_review:
+    types: [submitted]
+
+permissions:
+  pull-requests: write
+  issues: write
+  contents: read
+
+jobs:
+  final-review:
+    name: Final Review ⊕
+    runs-on: ubuntu-latest
+    # Trigger when @claude is mentioned in a PR comment or review
+    if: |
+      (github.event_name == 'issue_comment' &&
+       github.event.issue.pull_request != null &&
+       contains(github.event.comment.body, '@claude')) ||
+      (github.event_name == 'pull_request_review' &&
+       contains(github.event.review.body, '@claude'))
+    steps:
+      - name: Run final review
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo  = context.repo.repo;
+
+            // Resolve PR number from either event type
+            const prNum = github.event_name === 'pull_request_review'
+              ? context.payload.pull_request.number
+              : context.payload.issue.number;
+
+            // Fetch PR details
+            const { data: pr } = await github.rest.pulls.get({
+              owner, repo, pull_number: prNum,
+            });
+
+            // Fetch changed files
+            const { data: files } = await github.rest.pulls.listFiles({
+              owner, repo, pull_number: prNum, per_page: 100,
+            });
+
+            const findings = [];
+            const passes   = [];
+            const table    = [];
+
+            // ── Title checks ──────────────────────────────────────────────
+            const title = pr.title;
+            if (title !== title.trimEnd()) {
+              findings.push('**Title** has trailing whitespace — remove it.');
+            }
+            if (title.length > 72) {
+              findings.push(`**Title** is ${title.length} chars — aim for ≤72.`);
+            }
+            if (title === title.toUpperCase() && title.length > 10) {
+              findings.push('**Title** is ALL CAPS — prefer sentence case.');
+            }
+            if (findings.filter(f => f.startsWith('**Title')).length === 0) {
+              passes.push('Title format is clean.');
+            }
+
+            // ── Draft / merge state ───────────────────────────────────────
+            if (pr.draft) {
+              findings.push('PR is still in **draft** state — mark ready before final merge.');
+            } else {
+              passes.push('PR is marked ready for review.');
+            }
+
+            // ── Concept file validation ───────────────────────────────────
+            const conceptFiles = files
+              .map(f => f.filename)
+              .filter(f =>
+                f.startsWith('concepts/') &&
+                f.endsWith('.md') &&
+                !f.includes('_template') &&
+                !f.endsWith('README.md')
+              );
+
+            if (conceptFiles.length > 0) {
+              for (const filepath of conceptFiles) {
+                let content = '';
+                try {
+                  const { data } = await github.rest.repos.getContent({
+                    owner, repo, path: filepath, ref: pr.head.sha,
+                  });
+                  content = Buffer.from(data.content, 'base64').toString('utf8');
+                } catch (e) {
+                  findings.push(`\`${filepath}\`: could not read — ${e.message}`);
+                  table.push(`| \`${filepath.split('/').pop()}\` | error | *(unreadable)* |`);
+                  continue;
+                }
+
+                const get = (key) => {
+                  const m = content.match(new RegExp(`^${key}:\\s*(.+)$`, 'm'));
+                  return m ? m[1].trim().replace(/^"|"$/g, '') : '';
+                };
+
+                const cTitle   = get('title');
+                const status  = get('status');
+                const entered = get('entered');
+                const name    = filepath.split('/').pop();
+
+                const valid = ['shadow','emerging','graduated'];
+                if (!cTitle)  findings.push(`\`${name}\`: missing \`title\``);
+                if (!status)  findings.push(`\`${name}\`: missing \`status\``);
+                else if (!valid.includes(status))
+                  findings.push(`\`${name}\`: invalid status \`${status}\``);
+                if (!entered || entered === 'YYYY-MM-DD')
+                  findings.push(`\`${name}\`: missing or placeholder \`entered\` date`);
+
+                table.push(`| \`${name}\` | ${status || '—'} | ${cTitle || '—'} |`);
+              }
+              if (!findings.some(f => f.includes('.md'))) {
+                passes.push(`${conceptFiles.length} concept file(s) validated — frontmatter clean.`);
+              }
+            }
+
+            // ── File stats ────────────────────────────────────────────────
+            const added    = files.filter(f => f.status === 'added').length;
+            const modified = files.filter(f => f.status === 'modified').length;
+            const removed  = files.filter(f => f.status === 'removed').length;
+            const secrets  = files.filter(f =>
+              /\.(env|pem|key|secret|token|credentials)$/i.test(f.filename) ||
+              /secrets?\//i.test(f.filename)
+            );
+            if (secrets.length > 0) {
+              findings.push(`Possible sensitive file(s) detected: ${secrets.map(f => `\`${f.filename}\``).join(', ')}`);
+            }
+
+            // ── Build report ──────────────────────────────────────────────
+            const clean = findings.length === 0;
+            const seal  = clean ? '♓ VERIFIED' : '♓ REVIEW REQUIRED';
+
+            const lines = [
+              `## ⊕ Final Review — ${clean ? '✅ Clear' : '⛔ Items Found'}`,
+              '',
+              `> *${seal}*`,
+              '',
+              `**PR:** #${prNum} — ${title}`,
+              `**Files:** ${added} added · ${modified} modified · ${removed} removed`,
+              '',
+            ];
+
+            if (conceptFiles.length > 0) {
+              lines.push(
+                '### Concept Files',
+                '',
+                '| File | Status | Title |',
+                '|---|---|---|',
+                ...table,
+                '',
+              );
+            }
+
+            if (passes.length > 0) {
+              lines.push('### Passes', '', ...passes.map(p => `- ✅ ${p}`), '');
+            }
+
+            if (!clean) {
+              lines.push('### Findings', '', ...findings.map(f => `- ⚠️ ${f}`), '');
+            }
+
+            lines.push(
+              '### Final Checklist',
+              '',
+              '- [ ] Title is clean and descriptive',
+              '- [ ] All changed concepts have valid frontmatter and honest open questions',
+              '- [ ] No sensitive files included',
+              '- [ ] Connections to other concepts/systems are noted where relevant',
+              '- [ ] If merging to radix — does this belong in the shadow, or is it already an origin?',
+              '',
+              '---',
+              '*⊕ radix — the root beneath the root · ♓*',
+            );
+
+            const body = lines.join('\n');
+
+            // Upsert comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner, repo, issue_number: prNum,
+            });
+            const existing = comments.find(c =>
+              c.user.login === 'github-actions[bot]' &&
+              c.body.includes('Final Review')
+            );
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner, repo, comment_id: existing.id, body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner, repo, issue_number: prNum, body,
+              });
+            }
+
+            // If findings exist, open a tracking issue
+            if (!clean) {
+              await github.rest.issues.create({
+                owner, repo,
+                title: `[review] ${title} — items from final review`,
+                body: [
+                  `Final review of PR #${prNum} found items requiring attention.`,
+                  '',
+                  '### Findings',
+                  '',
+                  ...findings.map(f => `- ${f}`),
+                  '',
+                  `See PR #${prNum} for full context.`,
+                  '',
+                  '---',
+                  '*⊕ radix final review*',
+                ].join('\n'),
+                labels: ['review'],
+              });
+            }
+
+            if (!clean) {
+              core.warning(`Final review found ${findings.length} item(s).`);
+            }
