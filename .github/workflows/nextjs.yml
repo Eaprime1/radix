@@ -16,16 +16,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  not-configured:
-    if: ${{ hashFiles('package.json') == '' }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - name: Next.js site not present
-        run: echo "No package.json found — add a Next.js app to activate this workflow."
-
   build:
-    if: ${{ hashFiles('package.json') != '' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -80,7 +71,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: build
-    if: ${{ hashFiles('package.json') != '' }}
+    if: ${{ needs.build.result == 'success' }}
     steps:
       - name: Deploy to GitHub Pages
         id: deployment

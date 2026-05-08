@@ -7,7 +7,7 @@ graduated_to: ""
 graduated_on: ""
 ---
 
-# [Concept Name]
+# Concept Name
 
 ## What it is
 
@@ -35,4 +35,4 @@ graduated_on: ""
 *Running log. Append, don't replace.*
 
 ---
-*[date]* — entered shadow
+*YYYY-MM-DD* — entered shadow
