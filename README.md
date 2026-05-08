@@ -1,5 +1,12 @@
-# suites
-team suites
+# Radix suites
+Team suites for the Radix project.
+
+## Overview
+This repository currently focuses on CI/CD security automation and shared suite documentation. Application code can be added as the project expands.
+
+## Repository layout
+- `.github/workflows`: CI/CD and security automation workflows.
+- `.copilot-GitHub/notes`: Working notes and follow-ups for contributors.
 
 ## CI/CD Security Hardening
 - Upgraded the EthicalCheck workflow to a maintained OWASP ZAP baseline scan action.
