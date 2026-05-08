@@ -12,6 +12,14 @@ interface FileListProps {
 }
 
 export default function FileList({ files, onSelect }: FileListProps) {
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>, file: FileEntry) => {
+    if (!onSelect) return;
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      onSelect(file);
+    }
+  };
+
   return (
     <div>
       {/* Header */}
@@ -26,6 +34,9 @@ export default function FileList({ files, onSelect }: FileListProps) {
           key={f.id}
           className="file-row"
           onClick={() => onSelect?.(f)}
+          onKeyDown={(event) => handleKeyDown(event, f)}
+          role={onSelect ? "button" : undefined}
+          tabIndex={onSelect ? 0 : undefined}
           style={{ cursor: onSelect ? "pointer" : "default" }}
         >
           <span className="fg-bright-black" style={{ minWidth: "3ch" }}>{f.id}</span>
