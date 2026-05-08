@@ -54,7 +54,13 @@ export function boxTop(width: number, title: string, style: BoxStyle = "double")
   const b = BOX[style];
   const inner = Math.max(0, width - 2);
   if (!title) return b.tl + hline(inner, style) + b.tr;
-  const padded = ` ${title} `;
+  if (inner < 2) return b.tl + hline(inner, style) + b.tr;
+  const maxTitleLen = inner - 2;
+  const fittedTitle =
+    title.length > maxTitleLen
+      ? `${title.slice(0, Math.max(0, maxTitleLen - 1))}…`
+      : title;
+  const padded = ` ${fittedTitle} `;
   if (padded.length > inner) return b.tl + hline(inner, style) + b.tr;
   const remaining = inner - padded.length;
   const left = Math.floor(remaining / 2);

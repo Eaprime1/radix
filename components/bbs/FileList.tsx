@@ -14,7 +14,10 @@ interface FileListProps {
 export default function FileList({ files, onSelect }: FileListProps) {
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>, file: FileEntry) => {
     if (!onSelect) return;
-    if (event.key === "Enter" || event.key === " ") {
+    if (event.key === "Enter") {
+      onSelect(file);
+    }
+    if (event.key === " ") {
       event.preventDefault();
       onSelect(file);
     }

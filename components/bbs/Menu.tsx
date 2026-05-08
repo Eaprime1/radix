@@ -29,7 +29,10 @@ export default function Menu({ items, columns = 1, onSelect }: MenuProps) {
             onClick={() => handleClick(item)}
             tabIndex={item.disabled ? -1 : 0}
             onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
+              if (e.key === "Enter") {
+                handleClick(item);
+              }
+              if (e.key === " ") {
                 e.preventDefault();
                 handleClick(item);
               }
