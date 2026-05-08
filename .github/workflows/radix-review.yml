@@ -24,9 +24,15 @@ jobs:
             const pr    = context.payload.pull_request.number;
 
             // 1. Get changed concept files via API
-            const { data: changedFiles } = await github.rest.pulls.listFiles({
-              owner, repo, pull_number: pr, per_page: 100,
-            });
+            const changedFiles = await github.paginate(
+              github.rest.pulls.listFiles,
+              {
+                owner,
+                repo,
+                pull_number: pr,
+                per_page: 100,
+              }
+            );
 
             const conceptFiles = changedFiles
               .map(f => f.filename)
