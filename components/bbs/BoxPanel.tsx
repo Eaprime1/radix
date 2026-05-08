@@ -27,9 +27,9 @@ export default function BoxPanel({
       <div style={{ whiteSpace: "pre", overflow: "hidden" }}>
         {title ? (
           <>
-            <span>{b.tl}{b.h.repeat(Math.floor((width - 2 - title.length - 2) / 2))}</span>
+            <span>{b.tl}{b.h.repeat(Math.max(0, Math.floor((width - 2 - title.length - 2) / 2)))}</span>
             <span style={{ color: titleColor }}>{` ${title} `}</span>
-            <span>{b.h.repeat(Math.ceil((width - 2 - title.length - 2) / 2))}{b.tr}</span>
+            <span>{b.h.repeat(Math.max(0, Math.ceil((width - 2 - title.length - 2) / 2)))}{b.tr}</span>
           </>
         ) : (
           <span>{topLine}</span>
