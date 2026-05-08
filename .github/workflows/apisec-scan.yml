@@ -33,7 +33,7 @@ jobs:
         with:
           apisec-username: ${{ secrets.APISEC_USERNAME }}
           apisec-password: ${{ secrets.APISEC_PASSWORD }}
-          apisec-project: "VAmPI"
+          apisec-project: ${{ vars.APISEC_PROJECT || github.event.repository.name }}
           sarif-result-file: "apisec-results.sarif"
       - name: Import results
         uses: github/codeql-action/upload-sarif@v3
