@@ -16,7 +16,16 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  not-configured:
+    if: ${{ hashFiles('package.json') == '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Next.js site not present
+        run: echo "No package.json found — add a Next.js app to activate this workflow."
+
   build:
+    if: ${{ hashFiles('package.json') != '' }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -36,7 +45,7 @@ jobs:
             echo "command=ci" >> $GITHUB_OUTPUT
             echo "runner=npx --no-install" >> $GITHUB_OUTPUT
           else
-            echo "No package.json found — add a Next.js app to activate this workflow."
+            echo "package.json disappeared after checkout."
             exit 1
           fi
       - name: Setup Node
@@ -71,6 +80,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: build
+    if: ${{ hashFiles('package.json') != '' }}
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
