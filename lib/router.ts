@@ -28,7 +28,7 @@ export function useNavigo() {
 
     r.resolve();
 
-    return () => { r.destroy(); _router = null; };
+    return () => { /* Singleton persists for app lifetime */ };
   }, []);
 
   const navigate = useCallback((dest: BbsView) => {
