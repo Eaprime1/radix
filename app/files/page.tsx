@@ -2,6 +2,6 @@
 import { useEffect } from "react";
 
 export default function FilesRedirect() {
-  useEffect(() => { window.location.replace("/#files"); }, []);
+  useEffect(() => { window.location.replace("/#/files"); }, []);
   return null;
 }
