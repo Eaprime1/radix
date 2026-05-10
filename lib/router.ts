@@ -28,7 +28,7 @@ export function useNavigo() {
 
     r.resolve();
 
-    return () => { r.destroy(); _router = null; };
+    return () => {};
   }, []);
 
   const navigate = useCallback((dest: BbsView) => {
