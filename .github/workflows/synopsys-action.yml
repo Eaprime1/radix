@@ -14,7 +14,7 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
+  synopsys-scan:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:

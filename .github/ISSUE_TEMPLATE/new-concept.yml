@@ -1,0 +1,44 @@
+name: New Concept
+description: Introduce a concept into the shadow
+labels: ["shadow"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Something needs to exist but doesn't yet. Name the pressure.
+        A full concept document will come later — this is just the entry point.
+
+  - type: input
+    id: name
+    attributes:
+      label: Concept name
+      description: What to call it. Rough is fine.
+      placeholder: e.g. "telegard auth flow" or "shadow indexer"
+    validations:
+      required: true
+
+  - type: textarea
+    id: pressure
+    attributes:
+      label: What is the pressure?
+      description: What breaks without this? What is trying to exist?
+      placeholder: Describe the need, not the solution.
+    validations:
+      required: true
+
+  - type: textarea
+    id: connections
+    attributes:
+      label: What does it connect to?
+      description: Other concepts, repos, systems. Even loose associations.
+      placeholder: e.g. "telegard_UNEXUSI backend, radix FileList component"
+
+  - type: dropdown
+    id: status
+    attributes:
+      label: How formed is this?
+      options:
+        - "shadow — just pressure, no form yet"
+        - "emerging — some shape visible"
+    validations:
+      required: true

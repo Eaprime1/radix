@@ -24,6 +24,12 @@ jobs:
         uses: actions/checkout@v4
         with:
           persist-credentials: false
+      - name: Verify Next.js project files
+        run: |
+          if [ ! -f "${{ github.workspace }}/package.json" ]; then
+            echo "Error: package.json not found. This workflow requires a Next.js project."
+            exit 1
+          fi
       - name: Detect package manager
         id: detect-package-manager
         run: |
@@ -36,7 +42,7 @@ jobs:
             echo "command=ci" >> $GITHUB_OUTPUT
             echo "runner=npx --no-install" >> $GITHUB_OUTPUT
           else
-            echo "No package.json found — add a Next.js app to activate this workflow."
+            echo "package.json disappeared after checkout."
             exit 1
           fi
       - name: Setup Node
