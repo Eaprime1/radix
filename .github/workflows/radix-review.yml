@@ -62,8 +62,14 @@ jobs:
                 continue;
               }
 
+              const getFrontmatter = (text) => {
+                const m = text.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/);
+                return m ? m[1] : '';
+              };
+
+              const frontmatter = getFrontmatter(content);
               const get = (key) => {
-                const m = content.match(new RegExp(`^${key}:\\s*(.+)$`, 'm'));
+                const m = frontmatter.match(new RegExp(`^${key}:\\s*(.+)$`, 'm'));
                 return m ? m[1].trim().replace(/^"|"$/g, '') : '';
               };
 
