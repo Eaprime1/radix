@@ -42,6 +42,7 @@ export default function Prompt({ label, options, onSubmit, autoFocus, maxLength 
 export function MorePrompt({ onContinue, onQuit }: { onContinue: () => void; onQuit: () => void }) {
   useEffect(() => {
     const handler = (e: globalThis.KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
       if (e.key === " " || e.key === "Enter") { e.preventDefault(); onContinue(); }
       if (e.key === "q" || e.key === "Q") onQuit();
     };
