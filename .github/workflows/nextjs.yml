@@ -36,7 +36,7 @@ jobs:
             echo "command=ci" >> $GITHUB_OUTPUT
             echo "runner=npx --no-install" >> $GITHUB_OUTPUT
           else
-            echo "package.json disappeared after checkout."
+            echo "No package.json found after checkout."
             exit 1
           fi
       - name: Setup Node
