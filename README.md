@@ -19,7 +19,7 @@ the skin for `telegard_UNEXUSI`.
 - **Components** — Terminal (CRT wrapper), StatusBar, BoxPanel, Menu, MessageHeader,
   FileList, Prompt, ANSIArt
 - **Router** — Navigo v8 hash routing (`/#boards`, `/#files`, `/#system`) — single-session, no reloads
-- **Font** — VT323 (authentic terminal feel)
+- **Font** — Courier/Lucida terminal-style stack (authentic terminal feel)
 - **CRT effects** — scanline overlay, phosphor glow via CSS
 
 ### Concept System
