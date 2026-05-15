@@ -133,10 +133,9 @@ export default function PRGuide() {
   };
 
   const handleKeyToggle = (event, fn) => {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      fn();
-    }
+    if (event.key !== "Enter" && event.key !== " ") return;
+    event.preventDefault();
+    fn();
   };
 
   const handleTabKeyDown = (event, currentIndex, tabId) => {
@@ -154,7 +153,10 @@ export default function PRGuide() {
     handleKeyToggle(event, () => handleTabSelect(tabId));
   };
 
-  const sanitizeId = value => value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+  const sanitizeId = value => {
+    const sanitized = value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+    return sanitized || "item";
+  };
   const getItemDetailsId = (catId, title) => `item-details-${catId}-${sanitizeId(title)}`;
 
   return (
