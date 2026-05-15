@@ -125,7 +125,7 @@ export default function PRGuide() {
   const [active, setActive] = useState("security");
   const [expanded, setExpanded] = useState(null);
 
-  const cat = categories.find(c => c.id === active);
+  const cat = categories.find(c => c.id === active) || categories[0];
 
   return (
     <div style={{
