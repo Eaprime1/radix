@@ -1,0 +1,152 @@
+name: Radix First Review
+
+on:
+  pull_request:
+    paths:
+      - "concepts/**"
+    types: [opened, synchronize, reopened]
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  review:
+    name: Shadow Review
+    runs-on: ubuntu-latest
+    steps:
+      - name: Shadow review
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo  = context.repo.repo;
+            const pr    = context.payload.pull_request.number;
+            const headOwner = context.payload.pull_request.head.repo.owner.login;
+            const headRepo = context.payload.pull_request.head.repo.name;
+
+            // 1. Get changed concept files via API
+            const changedFiles = await github.paginate(
+              github.rest.pulls.listFiles,
+              {
+                owner,
+                repo,
+                pull_number: pr,
+                per_page: 100,
+              }
+            );
+
+            const conceptFiles = changedFiles
+              .map(f => f.filename)
+              .filter(f =>
+                f.startsWith('concepts/') &&
+                f.endsWith('.md') &&
+                !f.includes('_template') &&
+                !f.endsWith('README.md')
+              );
+
+            if (conceptFiles.length === 0) {
+              core.info('No concept files changed — skipping review.');
+              return;
+            }
+
+            // 2. Fetch and validate each concept file
+            const errors   = [];
+            const tableRows = [];
+
+            for (const filepath of conceptFiles) {
+              let content = '';
+              try {
+                const { data } = await github.rest.repos.getContent({
+                  owner: headOwner, repo: headRepo, path: filepath,
+                  ref: context.payload.pull_request.head.sha,
+                });
+                content = Buffer.from(data.content, 'base64').toString('utf8');
+              } catch (e) {
+                errors.push(`- \`${filepath}\`: could not read file (${e.message})`);
+                tableRows.push(`| \`${filepath}\` | error | *(unreadable)* |`);
+                continue;
+              }
+
+              const get = (key) => {
+                const m = content.match(new RegExp(`^${key}:\\s*(.+)$`, 'm'));
+                return m ? m[1].trim().replace(/^"|"$/g, '') : '';
+              };
+
+              const title   = get('title');
+              const status  = get('status');
+              const entered = get('entered');
+              const name    = filepath.split('/').pop();
+
+              if (!title)   errors.push(`- \`${filepath}\`: missing title`);
+              if (!status)  errors.push(`- \`${filepath}\`: missing status`);
+              else if (!['shadow','emerging','graduated'].includes(status))
+                errors.push(`- \`${filepath}\`: invalid status \`${status}\` — must be shadow, emerging, or graduated`);
+              if (!entered) errors.push(`- \`${filepath}\`: missing entered date`);
+
+              tableRows.push(`| \`${name}\` | ${status || 'unknown'} | ${title || 'untitled'} |`);
+            }
+
+            // 3. Build comment body
+            const ok = errors.length === 0;
+            const lines = [
+              `## ${ok ? '✅' : '⛔'} Radix First Review`,
+              '',
+              ok
+                ? `All ${conceptFiles.length} concept file(s) are structurally valid.`
+                : 'Validation failed — fix the issues below before merging.',
+              '',
+              '### Changed Concepts',
+              '',
+              '| File | Status | Title |',
+              '|---|---|---|',
+              ...tableRows,
+              '',
+            ];
+
+            if (!ok) {
+              lines.push('### Validation Errors', '', ...errors, '');
+            }
+
+            lines.push(
+              '### Review Checklist',
+              '',
+              'Shadow layer review — check before merging:',
+              '',
+              '- [ ] Does the concept have enough pressure to be named, or is it still formless?',
+              '- [ ] Are the **open questions** honest — not rhetorical, but genuinely unresolved?',
+              '- [ ] Are **connections** to other concepts and systems noted?',
+              '- [ ] If status is `graduated` — is `graduated_to` filled in and does that origin exist?',
+              '- [ ] If status is `emerging` — is there enough form here that it could graduate in the next session?',
+              "- [ ] Does this concept belong in the shadow, or is it actually already someone else's origin?",
+              '',
+              '---',
+              '*radix — the root beneath the root*',
+            );
+
+            const body = lines.join('\n');
+
+            // 4. Upsert comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner, repo, issue_number: pr,
+            });
+
+            const existing = comments.find(c =>
+              c.user.login === 'github-actions[bot]' &&
+              c.body.includes('Radix First Review')
+            );
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner, repo, comment_id: existing.id, body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner, repo, issue_number: pr, body,
+              });
+            }
+
+            // 5. Fail the check if validation errors found
+            if (!ok) {
+              core.setFailed(`Concept validation failed: ${errors.length} error(s)`);
+            }
