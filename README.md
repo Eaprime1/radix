@@ -6,7 +6,7 @@ This repository currently focuses on CI/CD security automation and shared suite 
 
 ## Repository layout
 - `.github/workflows`: CI/CD and security automation workflows.
-- `.copilot-GitHub/notes`: Working notes and follow-ups for contributors.
+- .github/copilot/notes: Working notes and follow-ups for contributors.
 
 ## CI/CD Security Hardening
 - Upgraded the EthicalCheck workflow to a maintained OWASP ZAP baseline scan action.
