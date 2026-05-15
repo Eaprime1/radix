@@ -126,17 +126,29 @@ export default function PRGuide() {
   const [expanded, setExpanded] = useState(null);
 
   const cat = categories.find(c => c.id === active) || categories[0];
+  if (!cat) return null;
+
+  const handleTabSelect = id => {
+    setActive(id);
+    setExpanded(null);
+  };
+
+  const handleKeyToggle = (event, fn) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      fn();
+    }
+  };
 
   return (
     <div className="pr-guide-root" style={{
-      fontFamily: "'IBM Plex Mono', 'Courier New', monospace",
+      fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
       background: "#0d1117",
       minHeight: "100vh",
       color: "#c9d1d9",
       padding: "0"
     }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;600&family=Space+Grotesk:wght@500;700&display=swap');
         .pr-guide-root * { box-sizing: border-box; }
         ::-webkit-scrollbar { width: 6px; } 
         ::-webkit-scrollbar-track { background: #161b22; }
@@ -159,7 +171,7 @@ export default function PRGuide() {
           Pull Request Enhancement Guide
         </div>
         <div style={{
-          fontFamily: "'Space Grotesk', sans-serif",
+          fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
           fontSize: 22,
           fontWeight: 700,
           color: "#f0f6fc",
@@ -179,12 +191,21 @@ export default function PRGuide() {
         padding: "16px 32px 0",
         borderBottom: "1px solid #21262d",
         background: "#161b22"
+      }}
+      role="tablist"
+      aria-label="PR enhancement categories"
       }}>
         {categories.map(c => (
           <div
             key={c.id}
             className="nav-tab"
-            onClick={() => { setActive(c.id); setExpanded(null); }}
+            onClick={() => handleTabSelect(c.id)}
+            onKeyDown={event => handleKeyToggle(event, () => handleTabSelect(c.id))}
+            role="tab"
+            tabIndex={active === c.id ? 0 : -1}
+            aria-selected={active === c.id}
+            aria-controls={`category-panel-${c.id}`}
+            id={`category-tab-${c.id}`}
             style={{
               padding: "8px 16px",
               borderRadius: "6px 6px 0 0",
@@ -207,7 +228,12 @@ export default function PRGuide() {
       </div>
 
       {/* Content */}
-      <div style={{ padding: "28px 32px", maxWidth: 900 }}>
+      <div
+        role="tabpanel"
+        id={`category-panel-${cat.id}`}
+        aria-labelledby={`category-tab-${cat.id}`}
+        style={{ padding: "28px 32px", maxWidth: 900 }}
+      >
         <div style={{
           fontSize: 11,
           color: "#8b949e",
@@ -227,13 +253,18 @@ export default function PRGuide() {
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {cat.items.map((item, i) => {
+          {cat.items.map(item => {
             const isOpen = expanded === item.title;
             return (
               <div
                 key={item.title}
                 className="card"
                 onClick={() => setExpanded(isOpen ? null : item.title)}
+                onKeyDown={event => handleKeyToggle(event, () => setExpanded(isOpen ? null : item.title))}
+                role="button"
+                tabIndex={0}
+                aria-expanded={isOpen}
+                aria-controls={`item-details-${cat.id}-${item.title.replace(/\s+/g, "-").toLowerCase()}`}
                 style={{
                   background: isOpen ? "#161b22" : "#0d1117",
                   border: `1px solid ${isOpen ? cat.color + "55" : "#21262d"}`,
@@ -277,7 +308,7 @@ export default function PRGuide() {
                 </div>
 
                 {isOpen && (
-                  <div style={{
+                  <div id={`item-details-${cat.id}-${item.title.replace(/\s+/g, "-").toLowerCase()}`} style={{
                     marginTop: 16,
                     padding: "12px 16px",
                     background: "#010409",
