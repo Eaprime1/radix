@@ -228,12 +228,12 @@ export default function PRGuide() {
 
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {cat.items.map((item, i) => {
-            const isOpen = expanded === i;
+            const isOpen = expanded === item.title;
             return (
               <div
-                key={i}
+                key={item.title}
                 className="card"
-                onClick={() => setExpanded(isOpen ? null : i)}
+                onClick={() => setExpanded(isOpen ? null : item.title)}
                 style={{
                   background: isOpen ? "#161b22" : "#0d1117",
                   border: `1px solid ${isOpen ? cat.color + "55" : "#21262d"}`,
