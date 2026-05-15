@@ -133,7 +133,8 @@ export default function PRGuide() {
   };
 
   const handleKeyToggle = (event, fn) => {
-    if (event.key !== "Enter" && event.key !== " ") return;
+    const isActivationKey = event.key === "Enter" || event.key === " " || event.code === "Space";
+    if (!isActivationKey) return;
     event.preventDefault();
     fn();
   };
@@ -157,7 +158,7 @@ export default function PRGuide() {
     const sanitized = value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
     return sanitized || "item";
   };
-  const getItemDetailsId = (catId, title) => `item-details-${catId}-${sanitizeId(title)}`;
+  const getItemDetailsId = (catId, title, index) => `item-details-${catId}-${sanitizeId(title)}-${index}`;
 
   return (
     <div className="pr-guide-root" style={{
@@ -272,7 +273,7 @@ export default function PRGuide() {
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {cat.items.map(item => {
+          {cat.items.map((item, index) => {
             const isOpen = expanded === item.title;
             return (
               <div
@@ -283,7 +284,7 @@ export default function PRGuide() {
                 role="button"
                 tabIndex={0}
                 aria-expanded={isOpen}
-                aria-controls={getItemDetailsId(cat.id, item.title)}
+                aria-controls={getItemDetailsId(cat.id, item.title, index)}
                 style={{
                   background: isOpen ? "#161b22" : "#0d1117",
                   border: `1px solid ${isOpen ? cat.color + "55" : "#21262d"}`,
@@ -327,7 +328,7 @@ export default function PRGuide() {
                 </div>
 
                 {isOpen && (
-                  <div id={getItemDetailsId(cat.id, item.title)} style={{
+                  <div id={getItemDetailsId(cat.id, item.title, index)} style={{
                     marginTop: 16,
                     padding: "12px 16px",
                     background: "#010409",
