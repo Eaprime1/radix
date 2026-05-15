@@ -133,7 +133,7 @@ export default function PRGuide() {
   };
 
   const handleKeyToggle = (event, fn) => {
-    if (event.key === "Enter" || event.key === " " || event.key === "Spacebar") {
+    if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
       fn();
     }
@@ -154,8 +154,8 @@ export default function PRGuide() {
     handleKeyToggle(event, () => handleTabSelect(tabId));
   };
 
-  const getItemDetailsId = (catId, title) =>
-    `item-details-${catId}-${title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")}`;
+  const sanitizeId = value => value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+  const getItemDetailsId = (catId, title) => `item-details-${catId}-${sanitizeId(title)}`;
 
   return (
     <div className="pr-guide-root" style={{
