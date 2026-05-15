@@ -239,7 +239,7 @@ export default function PRGuide() {
                   border: `1px solid ${isOpen ? cat.color + "55" : "#21262d"}`,
                   borderRadius: 8,
                   padding: "16px 20px",
-                  userSelect: "none"
+                  userSelect: "auto"
                 }}
               >
                 <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
