@@ -128,7 +128,7 @@ export default function PRGuide() {
   const cat = categories.find(c => c.id === active) || categories[0];
 
   return (
-    <div style={{
+    <div className="pr-guide-root" style={{
       fontFamily: "'IBM Plex Mono', 'Courier New', monospace",
       background: "#0d1117",
       minHeight: "100vh",
