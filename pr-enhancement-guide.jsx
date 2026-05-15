@@ -126,7 +126,6 @@ export default function PRGuide() {
   const [expanded, setExpanded] = useState(null);
 
   const cat = categories.find(c => c.id === active) || categories[0];
-  if (!cat) return null;
 
   const handleTabSelect = id => {
     setActive(id);
@@ -134,11 +133,28 @@ export default function PRGuide() {
   };
 
   const handleKeyToggle = (event, fn) => {
-    if (event.key === "Enter" || event.key === " ") {
+    if (event.key === "Enter" || event.key === " " || event.key === "Spacebar" || event.code === "Space") {
       event.preventDefault();
       fn();
     }
   };
+
+  const handleTabKeyDown = (event, currentIndex, tabId) => {
+    if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
+      event.preventDefault();
+      const direction = event.key === "ArrowRight" ? 1 : -1;
+      const nextIndex = (currentIndex + direction + categories.length) % categories.length;
+      const nextTab = categories[nextIndex];
+      handleTabSelect(nextTab.id);
+      const nextTabElement = document.getElementById(`category-tab-${nextTab.id}`);
+      if (nextTabElement) nextTabElement.focus();
+      return;
+    }
+
+    handleKeyToggle(event, () => handleTabSelect(tabId));
+  };
+
+  const getItemDetailsId = (catId, title) => `item-details-${catId}-${title.replace(/\s+/g, "-").toLowerCase()}`;
 
   return (
     <div className="pr-guide-root" style={{
@@ -195,12 +211,12 @@ export default function PRGuide() {
       role="tablist"
       aria-label="PR enhancement categories"
       }}>
-        {categories.map(c => (
+        {categories.map((c, index) => (
           <div
             key={c.id}
             className="nav-tab"
             onClick={() => handleTabSelect(c.id)}
-            onKeyDown={event => handleKeyToggle(event, () => handleTabSelect(c.id))}
+            onKeyDown={event => handleTabKeyDown(event, index, c.id)}
             role="tab"
             tabIndex={active === c.id ? 0 : -1}
             aria-selected={active === c.id}
@@ -264,7 +280,7 @@ export default function PRGuide() {
                 role="button"
                 tabIndex={0}
                 aria-expanded={isOpen}
-                aria-controls={`item-details-${cat.id}-${item.title.replace(/\s+/g, "-").toLowerCase()}`}
+                aria-controls={getItemDetailsId(cat.id, item.title)}
                 style={{
                   background: isOpen ? "#161b22" : "#0d1117",
                   border: `1px solid ${isOpen ? cat.color + "55" : "#21262d"}`,
@@ -308,7 +324,7 @@ export default function PRGuide() {
                 </div>
 
                 {isOpen && (
-                  <div id={`item-details-${cat.id}-${item.title.replace(/\s+/g, "-").toLowerCase()}`} style={{
+                  <div id={getItemDetailsId(cat.id, item.title)} style={{
                     marginTop: 16,
                     padding: "12px 16px",
                     background: "#010409",
