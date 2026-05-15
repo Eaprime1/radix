@@ -24,7 +24,7 @@ jobs:
        contains(github.event.review.body, '@claude'))
     steps:
       - name: Run final review
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             const owner = context.repo.owner;

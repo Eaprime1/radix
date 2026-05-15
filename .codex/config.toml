@@ -8,6 +8,7 @@ web_search = "live"
 [mcp_servers.github]
 command = "npx"
 args = ["-y", "@modelcontextprotocol/server-github@2025.12.18"]
+args = ["-y", "@modelcontextprotocol/server-github@2025.4.8"]
 
 [mcp_servers.context7]
 command = "npx"
