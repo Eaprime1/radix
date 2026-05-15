@@ -137,7 +137,7 @@ export default function PRGuide() {
     }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;600&family=Space+Grotesk:wght@500;700&display=swap');
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        .pr-guide-root * { box-sizing: border-box; }
         ::-webkit-scrollbar { width: 6px; } 
         ::-webkit-scrollbar-track { background: #161b22; }
         ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 3px; }
