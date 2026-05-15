@@ -24,14 +24,12 @@ export default function Prompt({ label, options, onSubmit, autoFocus, maxLength 
   return (
     <div className="prompt-line">
       <span id={labelId} className="fg-bright-yellow">{label}</span>
-      <label className="fg-bright-yellow">{label}</label>
       {options && <span className="fg-white">[{options}]</span>}
       <span className="fg-bright-yellow">:</span>
       <input
         id={inputId}
         className="prompt-input"
         aria-labelledby={labelId}
-        aria-label={label}
         value={value}
         onChange={(e) => setValue(e.target.value)}
         onKeyDown={handleKey}
