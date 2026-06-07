@@ -1,0 +1,87 @@
+name: Finalize PR
+
+# The "finalize button": comment `@claude finalize` on a PR once review is
+# done. This checks that all review threads are resolved, posts a closing
+# rubric/valuation summary, and applies the `finalized` label — the signal
+# that the PR is sealed and ready to merge (same idea as a closed-comment-
+# period sign-off on a federal land-use report or an appropriations bill).
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  finalize:
+    if: |
+      github.event.issue.pull_request != null &&
+      contains(github.event.comment.body, '@claude finalize')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for unresolved review threads
+        id: threads
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.issue.number;
+            const query = `query($owner:String!,$repo:String!,$pr:Int!){
+              repository(owner:$owner,name:$repo){
+                pullRequest(number:$pr){
+                  reviewThreads(first:100){ nodes { isResolved isOutdated } }
+                }
+              }
+            }`;
+            const result = await github.graphql(query, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pr: prNumber,
+            });
+            const threads = result.repository.pullRequest.reviewThreads.nodes;
+            const unresolved = threads.filter(t => !t.isResolved && !t.isOutdated);
+            core.setOutput('unresolved_count', unresolved.length);
+            return unresolved.length;
+
+      - name: Post finalization summary
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const unresolved = ${{ steps.threads.outputs.unresolved_count }};
+            const prNumber = context.issue.number;
+
+            if (unresolved > 0) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: `**Finalization check — not yet sealed**\n\n` +
+                  `${unresolved} review thread(s) are still unresolved. ` +
+                  `Resolve outstanding feedback, then comment \`@claude finalize\` again.\n\n` +
+                  `_Like a comment period on a federal land-use report — finalization happens after, not during, review._`
+              });
+              return;
+            }
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: `**Finalization — sealed ✅**\n\n` +
+                `All review threads are resolved. This PR is marked \`finalized\`: ` +
+                `review is complete and it is ready for merge.\n\n` +
+                `| Gate | Status |\n|---|---|\n` +
+                `| Review threads resolved | ✅ |\n` +
+                `| Rubric/valuation recorded | see prior review comments |\n` +
+                `| Sealed by | @${context.actor} |\n\n` +
+                `_Finalization is the closing signature on the record — the point where review ends and action begins._`
+            });
+
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              labels: ['finalized']
+            });
