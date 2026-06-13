@@ -105,4 +105,16 @@ jobs:
               });
             } catch (error) {
               core.warning(`Unable to apply "finalized" label: ${error.message}`);
+              try {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: prNumber,
+                  body: `**Finalization note 🃏**\n\n` +
+                    `Review finalization succeeded, but I couldn’t apply the \`finalized\` label. ` +
+                    `Please ensure the label exists and this workflow has permission to apply it.`
+                });
+              } catch (commentError) {
+                core.warning(`Unable to post label warning comment: ${commentError.message}`);
+              }
             }
