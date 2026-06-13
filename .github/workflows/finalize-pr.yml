@@ -52,12 +52,16 @@ jobs:
               });
               const reviewThreads = result.repository.pullRequest.reviewThreads;
               // Count every unresolved thread, including outdated ones.
-              const unresolvedCurrent = reviewThreads.nodes.filter(
-                t => !t.isResolved && !t.isOutdated
-              ).length;
-              const unresolvedOutdated = reviewThreads.nodes.filter(
-                t => !t.isResolved && t.isOutdated
-              ).length;
+              let unresolvedCurrent = 0;
+              let unresolvedOutdated = 0;
+              for (const thread of reviewThreads.nodes) {
+                if (thread.isResolved) continue;
+                if (thread.isOutdated) {
+                  unresolvedOutdated += 1;
+                } else {
+                  unresolvedCurrent += 1;
+                }
+              }
               unresolvedCount += unresolvedCurrent + unresolvedOutdated;
               if (!reviewThreads.pageInfo.hasNextPage) break;
               after = reviewThreads.pageInfo.endCursor;
