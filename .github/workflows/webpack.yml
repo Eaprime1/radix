@@ -32,4 +32,4 @@ jobs:
       if: ${{ hashFiles('package.json') != '' }}
       run: |
         npm install
-        npx webpack
+        npm run build
