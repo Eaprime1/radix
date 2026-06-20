@@ -25,6 +25,7 @@ export default function BoxPanel({
       ? `${title.slice(0, Math.max(0, maxTitleLen - 1))}…`
       : title;
   const topLine = boxTop(width, "", style);
+  const topLine = boxTop(width, title, style);
   const bottomLine = boxBottom(width, style);
 
   return (
@@ -35,6 +36,11 @@ export default function BoxPanel({
             <span>{b.tl}{b.h.repeat(Math.max(0, Math.floor((width - 2 - displayTitle.length - 2) / 2)))}</span>
             <span style={{ color: titleColor }}>{" "}{displayTitle}{" "}</span>
             <span>{b.h.repeat(Math.max(0, Math.ceil((width - 2 - displayTitle.length - 2) / 2)))}{b.tr}</span>
+        {title ? (
+          <>
+            <span>{b.tl}{b.h.repeat(Math.max(0, Math.floor((width - 2 - title.length - 2) / 2)))}</span>
+            <span style={{ color: titleColor }}>{` ${title} `}</span>
+            <span>{b.h.repeat(Math.max(0, Math.ceil((width - 2 - title.length - 2) / 2)))}{b.tr}</span>
           </>
         ) : (
           <span>{topLine}</span>
