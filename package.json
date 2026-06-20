@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "navigo": "^8.11.1",
-    "next": "15.5.15",
+    "next": "15.5.19",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
@@ -22,7 +22,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9.39.4",
-    "eslint-config-next": "15.5.15",
+    "eslint-config-next": "15.5.19",
     "typescript": "^5"
   }
 }
