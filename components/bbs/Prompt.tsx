@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect, KeyboardEvent, useId } from "react";
+import { useState, useEffect, KeyboardEvent } from "react";
 
 interface PromptProps {
   label: string;
@@ -30,6 +31,11 @@ export default function Prompt({ label, options, onSubmit, autoFocus, maxLength 
         id={inputId}
         className="prompt-input"
         aria-labelledby={labelId}
+      <span className="fg-bright-yellow">{label}</span>
+      {options && <span className="fg-white">[{options}]</span>}
+      <span className="fg-bright-yellow">:</span>
+      <input
+        className="prompt-input"
         value={value}
         onChange={(e) => setValue(e.target.value)}
         onKeyDown={handleKey}
@@ -39,6 +45,7 @@ export default function Prompt({ label, options, onSubmit, autoFocus, maxLength 
         autoComplete="off"
       />
       <span className="cursor" aria-hidden="true" />
+      <span className="cursor" />
     </div>
   );
 }

@@ -1,0 +1,45 @@
+name: Radix — Sovran Voice
+
+on:
+  pull_request:
+    types: [opened, ready_for_review]
+
+jobs:
+  radix-speaks:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Radix tests the foundation
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const author = pr.user.login;
+            const body = [
+              '## 🌱 Radix — The Foundation Speaks',
+              '',
+              '*measured against the root*',
+              '',
+              '> *Radix* holds what everything grows from.',
+              '> The root asks: does this strengthen what is below, or compromise it?',
+              '',
+              `@${author} works at the foundation level.`,
+              '',
+              '**From the root depth:**',
+              '- Does this change deepen the root, or make it shallow?',
+              '- What grows from this? What relies on this structure?',
+              '- Is this structurally sound — will it bear the weight above it?',
+              '- Does this add to what everything else can safely grow from?',
+              '',
+              '---',
+              '*Radix · sovran of the foundation · eaprime1 · ∰*'
+            ].join('\n');
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              body
+            });
+
+# ∰🛠️🌱🏗️-radix_sovran

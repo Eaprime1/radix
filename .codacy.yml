@@ -1,0 +1,9 @@
+exclude_paths:
+  - ".agents/**"
+  - ".claude/**"
+  - ".codex/**"
+  - ".copilot-GitHub/**"
+  - "**/*.pdf"
+  - "**/*.docx"
+  - "**/*.jpg"
+  - "**/*.png"
