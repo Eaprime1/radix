@@ -1,5 +1,6 @@
 "use client";
-import { useState, useEffect, KeyboardEvent } from "react";
+import { useState, KeyboardEvent, useId } from "react";
+import { useEffect } from "react";
 
 interface PromptProps {
   label: string;
@@ -11,6 +12,7 @@ interface PromptProps {
 
 export default function Prompt({ label, options, onSubmit, autoFocus, maxLength = 40 }: PromptProps) {
   const [value, setValue] = useState("");
+  const inputId = useId();
 
   const handleKey = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
@@ -21,10 +23,11 @@ export default function Prompt({ label, options, onSubmit, autoFocus, maxLength 
 
   return (
     <div className="prompt-line">
-      <span className="fg-bright-yellow">{label}</span>
+      <label htmlFor={inputId} className="fg-bright-yellow">{label}</label>
       {options && <span className="fg-white">[{options}]</span>}
       <span className="fg-bright-yellow">:</span>
       <input
+        id={inputId}
         className="prompt-input"
         value={value}
         onChange={(e) => setValue(e.target.value)}
@@ -34,7 +37,7 @@ export default function Prompt({ label, options, onSubmit, autoFocus, maxLength 
         spellCheck={false}
         autoComplete="off"
       />
-      <span className="cursor" />
+      <span className="cursor" aria-hidden="true" />
     </div>
   );
 }
@@ -42,6 +45,7 @@ export default function Prompt({ label, options, onSubmit, autoFocus, maxLength 
 export function MorePrompt({ onContinue, onQuit }: { onContinue: () => void; onQuit: () => void }) {
   useEffect(() => {
     const handler = (e: globalThis.KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
       if (e.key === " " || e.key === "Enter") { e.preventDefault(); onContinue(); }
       if (e.key === "q" || e.key === "Q") onQuit();
     };

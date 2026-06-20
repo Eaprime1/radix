@@ -21,22 +21,31 @@ export default function Menu({ items, columns = 1, onSelect }: MenuProps) {
   };
 
   return (
-    <ul className="menu-list" style={columns === 2 ? { columns: 2, columnGap: "4ch" } : {}}>
+    <ul className="menu-list" role="menu" style={columns === 2 ? { columns: 2, columnGap: "4ch" } : {}}>
       {items.map((item) => (
         <li key={item.key}>
-          <div
+          <button
+            type="button"
             className={`menu-item${item.disabled ? " fg-bright-black" : ""}`}
             onClick={() => handleClick(item)}
+            disabled={item.disabled}
             tabIndex={item.disabled ? -1 : 0}
-            onKeyDown={(e) => e.key === "Enter" && handleClick(item)}
-            role="menuitem"
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                handleClick(item);
+              }
+              if (e.key === " ") {
+                e.preventDefault();
+                handleClick(item);
+              }
+            }}
           >
             <span className="menu-bracket">[</span>
             <span className="menu-key">{item.key}</span>
             <span className="menu-bracket">]</span>
             <span className="menu-arrow"> ► </span>
             <span className="menu-desc">{item.label}</span>
-          </div>
+          </button>
         </li>
       ))}
     </ul>

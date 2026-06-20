@@ -20,5 +20,6 @@ export const SYSINFO = {
     { id: 1, name: "radix_core.zip",    size: "144K", desc: "core system files",         isNew: true  },
     { id: 2, name: "ansi_pack_01.zip",  size:  "88K", desc: "ANSI art collection vol.1", isNew: true  },
     { id: 3, name: "telegard_seed.zip", size: "256K", desc: "telegard UNEXUSI source",   isNew: false },
+    { id: 4, name: "shadow_doc.txt",    size:   "8K", desc: "the shadow principle",      isNew: false },
   ],
 } as const;
