@@ -17,7 +17,7 @@ A Next.js 15 static app implementing a BBS-era (1980s/90s) visual design system:
 - **Design tokens**: ANSI 16-color palette as CSS vars, CP437 box-drawing characters
 - **Components**: Terminal (CRT wrapper), StatusBar, BoxPanel, Menu, MessageHeader, FileList, Prompt, ANSIArt
 - **Pages**: main menu (`/`), boards (`/boards`), files (`/files`), system info (`/system`)
-- **Font**: VT323 (authentic terminal feel)
+- **Font**: Courier/Lucida terminal-style stack (authentic terminal feel)
 - **CRT effects**: scanline overlay, phosphor glow via CSS
 
 This is the skin for `telegard_UNEXUSI` (Python BBS engine, separate repo).

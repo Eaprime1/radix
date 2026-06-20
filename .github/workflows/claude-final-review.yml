@@ -24,7 +24,7 @@ jobs:
        contains(github.event.review.body, '@claude'))
     steps:
       - name: Run final review
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             const owner = context.repo.owner;
@@ -55,6 +55,7 @@ jobs:
             const findings = [];
             const passes   = [];
             const table    = [];
+            let conceptValidationFindings = 0;
 
             // ── Title checks ──────────────────────────────────────────────
             const title = pr.title;
@@ -105,6 +106,7 @@ jobs:
                   content = Buffer.from(data.content, 'base64').toString('utf8');
                 } catch (e) {
                   findings.push(`\`${filepath}\`: could not read — ${e.message}`);
+                  conceptValidationFindings++;
                   table.push(`| \`${filepath.split('/').pop()}\` | error | *(unreadable)* |`);
                   continue;
                 }
@@ -122,23 +124,38 @@ jobs:
                 const name        = filepath.split('/').pop();
 
                 const valid = ['shadow', 'emerging', 'graduated'];
-                if (!cTitle) findings.push(`\`${name}\`: missing \`title\``);
-                if (!status) findings.push(`\`${name}\`: missing \`status\``);
+                if (!cTitle) {
+                  findings.push(`\`${name}\`: missing \`title\``);
+                  conceptValidationFindings++;
+                }
+                if (!status) {
+                  findings.push(`\`${name}\`: missing \`status\``);
+                  conceptValidationFindings++;
+                }
                 else if (!valid.includes(status))
-                  findings.push(`\`${name}\`: invalid status \`${status}\``);
-                if (!entered || entered === 'YYYY-MM-DD')
+                  {
+                    findings.push(`\`${name}\`: invalid status \`${status}\``);
+                    conceptValidationFindings++;
+                  }
+                if (!entered || entered === 'YYYY-MM-DD') {
                   findings.push(`\`${name}\`: missing or placeholder \`entered\` date`);
+                  conceptValidationFindings++;
+                }
                 // Graduated concepts must have destination and date
                 if (status === 'graduated') {
-                  if (!graduatedTo)
+                  if (!graduatedTo) {
                     findings.push(`\`${name}\`: graduated but \`graduated_to\` is empty`);
-                  if (!graduatedOn || graduatedOn === 'YYYY-MM-DD')
+                    conceptValidationFindings++;
+                  }
+                  if (!graduatedOn || graduatedOn === 'YYYY-MM-DD') {
                     findings.push(`\`${name}\`: graduated but \`graduated_on\` is empty`);
+                    conceptValidationFindings++;
+                  }
                 }
 
                 table.push(`| \`${name}\` | ${status || '—'} | ${cTitle || '—'} |`);
               }
-              if (!findings.some(f => f.includes('.md'))) {
+              if (conceptValidationFindings === 0) {
                 passes.push(`${conceptFiles.length} concept file(s) validated — frontmatter clean.`);
               }
             }

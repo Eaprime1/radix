@@ -1,4 +1,4 @@
-name: NodeJS with Webpack
+name: NodeJS build
 
 on:
   push:
@@ -32,4 +32,4 @@ jobs:
       if: ${{ hashFiles('package.json') != '' }}
       run: |
         npm install
-        npx webpack
+        npm run build

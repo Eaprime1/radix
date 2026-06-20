@@ -1,7 +1,9 @@
 "use client";
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function SystemRedirect() {
-  useEffect(() => { window.location.replace("/#system"); }, []);
+  const router = useRouter();
+  useEffect(() => { router.replace("/#system"); }, [router]);
   return null;
 }

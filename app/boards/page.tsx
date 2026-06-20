@@ -1,7 +1,9 @@
 "use client";
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function BoardsRedirect() {
-  useEffect(() => { window.location.replace("/#boards"); }, []);
+  const router = useRouter();
+  useEffect(() => { router.replace("/#boards"); }, [router]);
   return null;
 }

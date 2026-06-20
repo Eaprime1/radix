@@ -16,17 +16,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Shadow review
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             const owner = context.repo.owner;
             const repo  = context.repo.repo;
             const pr    = context.payload.pull_request.number;
+            const headOwner = context.payload.pull_request.head.repo.owner.login;
+            const headRepo = context.payload.pull_request.head.repo.name;
 
             // 1. Get changed concept files via API
-            const { data: changedFiles } = await github.rest.pulls.listFiles({
-              owner, repo, pull_number: pr, per_page: 100,
-            });
+            const changedFiles = await github.paginate(
+              github.rest.pulls.listFiles,
+              {
+                owner,
+                repo,
+                pull_number: pr,
+                per_page: 100,
+              }
+            );
 
             const conceptFiles = changedFiles
               .map(f => f.filename)
@@ -50,7 +58,7 @@ jobs:
               let content = '';
               try {
                 const { data } = await github.rest.repos.getContent({
-                  owner, repo, path: filepath,
+                  owner: headOwner, repo: headRepo, path: filepath,
                   ref: context.payload.pull_request.head.sha,
                 });
                 content = Buffer.from(data.content, 'base64').toString('utf8');
@@ -60,8 +68,14 @@ jobs:
                 continue;
               }
 
+              const getFrontmatter = (text) => {
+                const m = text.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/);
+                return m ? m[1] : '';
+              };
+
+              const frontmatter = getFrontmatter(content);
               const get = (key) => {
-                const m = content.match(new RegExp(`^${key}:\\s*(.+)$`, 'm'));
+                const m = frontmatter.match(new RegExp(`^${key}:\\s*(.+)$`, 'm'));
                 return m ? m[1].trim().replace(/^"|"$/g, '') : '';
               };
 

@@ -1,7 +1,9 @@
 "use client";
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function FilesRedirect() {
-  useEffect(() => { window.location.replace("/#files"); }, []);
+  const router = useRouter();
+  useEffect(() => { router.replace("/#files"); }, [router]);
   return null;
 }
