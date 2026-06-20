@@ -48,7 +48,6 @@ export type BoxStyle = keyof Omit<typeof BOX, "block" | "misc">;
 
 export function hline(len: number, style: BoxStyle = "single"): string {
   return BOX[style].h.repeat(Math.max(0, len));
-  return BOX[style].h.repeat(len);
 }
 
 export function boxTop(width: number, title: string, style: BoxStyle = "double"): string {
@@ -63,9 +62,6 @@ export function boxTop(width: number, title: string, style: BoxStyle = "double")
       : title;
   const padded = ` ${fittedTitle} `;
   if (padded.length > inner) return b.tl + hline(inner, style) + b.tr;
-  const inner = width - 2;
-  if (!title) return b.tl + hline(inner, style) + b.tr;
-  const padded = ` ${title} `;
   const remaining = inner - padded.length;
   const left = Math.max(0, Math.floor(remaining / 2));
   const right = Math.max(0, remaining - left);
@@ -75,5 +71,4 @@ export function boxTop(width: number, title: string, style: BoxStyle = "double")
 export function boxBottom(width: number, style: BoxStyle = "double"): string {
   const b = BOX[style];
   return b.bl + hline(Math.max(0, width - 2), style) + b.br;
-  return b.bl + hline(width - 2, style) + b.br;
 }

@@ -18,33 +18,13 @@ export default function BoxPanel({
   titleColor = "var(--ansi-bright-cyan)",
   borderColor = "var(--ansi-blue)",
 }: BoxPanelProps) {
-  const b = BOX[style];
-  const maxTitleLen = Math.max(0, width - 4);
-  const displayTitle =
-    title.length > maxTitleLen
-      ? `${title.slice(0, Math.max(0, maxTitleLen - 1))}…`
-      : title;
-  const topLine = boxTop(width, "", style);
   const topLine = boxTop(width, title, style);
   const bottomLine = boxBottom(width, style);
 
   return (
     <div style={{ color: borderColor, fontFamily: "var(--font-terminal)", lineHeight: 1.2 }}>
       <div style={{ whiteSpace: "pre", overflow: "hidden" }}>
-        {displayTitle ? (
-          <>
-            <span>{b.tl}{b.h.repeat(Math.max(0, Math.floor((width - 2 - displayTitle.length - 2) / 2)))}</span>
-            <span style={{ color: titleColor }}>{" "}{displayTitle}{" "}</span>
-            <span>{b.h.repeat(Math.max(0, Math.ceil((width - 2 - displayTitle.length - 2) / 2)))}{b.tr}</span>
-        {title ? (
-          <>
-            <span>{b.tl}{b.h.repeat(Math.max(0, Math.floor((width - 2 - title.length - 2) / 2)))}</span>
-            <span style={{ color: titleColor }}>{` ${title} `}</span>
-            <span>{b.h.repeat(Math.max(0, Math.ceil((width - 2 - title.length - 2) / 2)))}{b.tr}</span>
-          </>
-        ) : (
-          <span>{topLine}</span>
-        )}
+        <span>{topLine}</span>
       </div>
       <div>
         {children}
