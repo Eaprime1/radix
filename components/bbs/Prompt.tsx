@@ -13,7 +13,6 @@ interface PromptProps {
 export default function Prompt({ label, options, onSubmit, autoFocus, maxLength = 40 }: PromptProps) {
   const [value, setValue] = useState("");
   const inputId = useId();
-  const labelId = `${inputId}-label`;
 
   const handleKey = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
