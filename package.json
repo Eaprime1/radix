@@ -11,8 +11,8 @@
   "dependencies": {
     "navigo": "^8.11.1",
     "next": "15.5.19",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7"
   },
   "overrides": {
     "postcss": "^8.5.14"
