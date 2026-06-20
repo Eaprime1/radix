@@ -22,14 +22,12 @@ export default function Prompt({ label, options, onSubmit, autoFocus, maxLength 
   };
 
   return (
-    <div className="prompt-line">
-      <span id={labelId} className="fg-bright-yellow">{label}</span>
+      <label htmlFor={inputId} className="fg-bright-yellow">{label}</label>
       {options && <span className="fg-white">[{options}]</span>}
       <span className="fg-bright-yellow">:</span>
       <input
         id={inputId}
         className="prompt-input"
-        aria-labelledby={labelId}
       <span className="fg-bright-yellow">{label}</span>
       {options && <span className="fg-white">[{options}]</span>}
       <span className="fg-bright-yellow">:</span>
