@@ -18,9 +18,9 @@ Example: `202607_PR238_seed-conatus-primus-prima-wobble.md`
 Each journey document contains:
 
 - **Header** — repo, prima-clock, branch, author, state
-- **Intent** — what the PR set out to do (from PR body)
-- **What Arrived** — what actually happened (from PR body)
-- **Resonance** — the one-word quality (from PR body)
+- **Intent / Summary** — what the PR set out to do (from PR body; accepts Intent or Summary section)
+- **What Arrived** — what actually happened (from PR body; accepts What Arrived or Changes section)
+- **Resonance** — the one-word quality (optional in radix; included if present)
 - **The Arc** — timeline table: opened → finalized
 - **CI Record** — all check runs and their results
 - **DeepSource Record** — passed / failed / skipped (if configured)
@@ -38,7 +38,8 @@ Each journey document contains:
 ## Gates
 
 Finalize will not proceed until:
-- Intent, What Arrived, and Resonance sections are filled in the PR body
+- Intent / Summary and What Arrived / Changes sections are filled in the PR body
+- Resonance section is optional in radix — included in the journey doc if present
 - All review threads are resolved
 - All CI checks have passed (no failing or pending)
 
