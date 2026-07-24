@@ -18,8 +18,7 @@ jobs:
     if: |
       github.event.issue.pull_request != null &&
       contains(github.event.comment.body, '@claude check') &&
-      !contains(github.event.comment.body, '@claude finalize') &&
-      contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association)
+      !contains(github.event.comment.body, '@claude finalize')
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -41,24 +40,22 @@ jobs:
             // ── Template sections ──────────────────────────────────────────────
             const body = pr.body || '';
             const parseSection = (label) => {
-              const safe = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-              const re = new RegExp(`##\\s+${safe}\\s*\\n([\\s\\S]*?)(?=\\n##\\s|$)`);
+              const re = new RegExp(`##\\s+${label}\\s*\\n([\\s\\S]*?)(?=\\n##\\s|$)`);
               const m  = body.match(re);
               if (!m) return null;
               const txt = m[1].replace(/<!--[\s\S]*?-->/g, '').trim();
               return txt.length > 3 ? txt : null;
             };
 
-            // Radix accepts Intent/Summary and What Arrived/Changes interchangeably
-            const intent      = parseSection('Intent') || parseSection('Summary');
-            const whatArrived = parseSection('What Arrived') || parseSection('Changes');
+            const intent      = parseSection('Intent');
+            const whatArrived = parseSection('What Arrived');
             const resonance   = parseSection('Resonance');
 
             const ethicsMatch = body.match(/##\s+Ethics Check\s*\n([\s\S]*?)(?=\n##\s|$)/);
             const ethicsLines = ethicsMatch
               ? ethicsMatch[1].split('\n').filter(l => /^\s*-\s*\[/.test(l))
               : [];
-            const ethicsDone  = ethicsLines.filter(l => /\[x\]/i.test(l)).length;
+            const ethicsDone  = ethicsLines.filter(l => l.includes('[x]')).length;
             const ethicsTotal = ethicsLines.length;
 
             // ── Review threads ─────────────────────────────────────────────────
@@ -107,16 +104,15 @@ jobs:
 
             // ── Build readiness report ─────────────────────────────────────────
             const gate = (ok, label) => `| ${ok ? '✅' : '⛔'} | ${label} |`;
-            // Resonance is optional in radix — not a gate blocker
-            const templateOk  = !!(intent && whatArrived);
+            const templateOk  = !!(intent && whatArrived && resonance);
             const threadsOk   = unresolved === 0;
             const ciOk        = failing.length === 0 && pending.length === 0;
             const allGreen    = templateOk && threadsOk && ciOk;
 
             const gateTable = [
-              gate(!!intent,      `Intent / Summary section ${intent ? 'filled' : '**empty**'}`)          ,
-              gate(!!whatArrived, `What Arrived / Changes section ${whatArrived ? 'filled' : '**empty**'}`) ,
-              gate(true,          `Resonance section ${resonance ? 'filled' : 'optional — not required in radix'}`) ,
+              gate(!!intent,           `Intent section ${intent ? 'filled' : '**empty**'}`),
+              gate(!!whatArrived,      `What Arrived section ${whatArrived ? 'filled' : '**empty**'}`),
+              gate(!!resonance,        `Resonance section ${resonance ? 'filled' : '**empty**'}`),
               gate(ethicsTotal > 0 && ethicsDone === ethicsTotal,
                    `Ethics check ${ethicsDone}/${ethicsTotal} complete`),
               gate(threadsOk,          `Review threads — ${unresolved === 0 ? 'all resolved' : `${unresolved} unresolved`}`),
@@ -147,7 +143,7 @@ jobs:
               : `Resolve the ⛔ items above, then run \`@claude check\` again. When all gates are green, \`@claude finalize\` will proceed.`;
 
             // Upsert: update existing readiness comment if present
-            const existingComments = await github.paginate(github.rest.issues.listComments, {
+            const { data: existingComments } = await github.rest.issues.listComments({
               owner, repo, issue_number: prNum, per_page: 100,
             });
             const existingReadiness = existingComments.find(c =>
