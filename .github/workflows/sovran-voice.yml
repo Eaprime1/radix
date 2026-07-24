@@ -15,7 +15,6 @@ jobs:
         with:
           script: |
             const pr = context.payload.pull_request;
-            const author = pr.user.login;
             const body = [
               '## 🌱 Radix — The Foundation Speaks',
               '',
@@ -23,8 +22,6 @@ jobs:
               '',
               '> *Radix* holds what everything grows from.',
               '> The root asks: does this strengthen what is below, or compromise it?',
-              '',
-              `@${author} works at the foundation level.`,
               '',
               '**From the root depth:**',
               '- Does this change deepen the root, or make it shallow?',
