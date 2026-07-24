@@ -15,15 +15,27 @@ jobs:
   final-review:
     name: Final Review ⊕
     runs-on: ubuntu-latest
-    # Trigger when @claude is mentioned in a PR comment or review
     if: |
       (github.event_name == 'issue_comment' &&
        github.event.issue.pull_request != null &&
-       contains(github.event.comment.body, '@claude')) ||
-      (github.event_name == 'pull_request_review' &&
-       contains(github.event.review.body, '@claude'))
+       contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association)) ||
+      (github.event_name == 'pull_request_review')
     steps:
+      - name: Gate — check trigger phrase
+        id: gate
+        env:
+          COMMENT_BODY: ${{ github.event.comment.body }}
+          REVIEW_BODY: ${{ github.event.review.body }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT_NAME" = "issue_comment" ] && echo "$COMMENT_BODY" | grep -qF '@claude'; then
+            echo "triggered=true" >> "$GITHUB_OUTPUT"
+          elif [ "$EVENT_NAME" = "pull_request_review" ] && echo "$REVIEW_BODY" | grep -qF '@claude'; then
+            echo "triggered=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Run final review
+        if: steps.gate.outputs.triggered == 'true'
         uses: actions/github-script@v7
         with:
           script: |
