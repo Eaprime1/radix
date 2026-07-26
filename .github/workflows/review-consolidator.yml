@@ -1,0 +1,133 @@
+# Radix — Review Consolidator
+#
+# Fires after check runs complete on a PR.
+# Waits briefly for all runners to settle, then fetches all check results
+# and posts one consolidated report comment (upserted — one comment per PR).
+# Replaces the noise from multiple individual bot comments with a single view.
+#
+# Trigger: `@claude review` in a PR comment (safe, on-demand).
+# Also fires automatically when all checks complete (workflow_run).
+name: Radix — Review Consolidator
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  pull-requests: write
+  issues: write
+  contents: read
+
+jobs:
+  consolidate:
+    if: |
+      github.event.issue.pull_request != null &&
+      contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Gate — check trigger phrase
+        id: gate
+        env:
+          COMMENT_BODY: ${{ github.event.comment.body }}
+        run: |
+          if echo "$COMMENT_BODY" | grep -qF '@claude review'; then
+            echo "triggered=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Consolidate review findings
+        if: steps.gate.outputs.triggered == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner  = context.repo.owner;
+            const repo   = context.repo.repo;
+            const prNum  = context.issue.number;
+            const SYMBOL = '♓⊕';
+
+            const { data: pr } = await github.rest.pulls.get({ owner, repo, pull_number: prNum });
+
+            // ── Fetch all check runs (paginated) ───────────────────────────
+            const allChecks = await github.paginate(github.rest.checks.listForRef, {
+              owner, repo, ref: pr.head.sha, per_page: 100,
+            });
+
+            // ── Categorise ────────────────────────────────────────────────
+            const icon = (c) => ({success:'✅',skipped:'⏭',neutral:'➖'}[c.conclusion]
+              || (c.status !== 'completed' ? '⏳' : '⛔'));
+
+            const security = allChecks.filter(c =>
+              /codeql|deepsource|codacy|gitguardian|scorecard|snyk|synopsys|apisec|ethicalcheck|bandit/i.test(c.name)
+            );
+            const build = allChecks.filter(c =>
+              /nextjs|build|test|lint|pylint|webpack/i.test(c.name) &&
+              !/codeql|deepsource|codacy|gitguardian/i.test(c.name)
+            );
+            const workflow = allChecks.filter(c =>
+              /finalize|readiness|triage|consolidat|sovran|radix.review/i.test(c.name)
+            );
+            const other = allChecks.filter(c =>
+              !security.includes(c) && !build.includes(c) && !workflow.includes(c)
+            );
+
+            const renderSection = (title, checks) => {
+              if (checks.length === 0) return [];
+              return [
+                `### ${title}`,
+                '',
+                '| Check | Result |',
+                '|---|---|',
+                ...checks.map(c => `| ${c.name} | ${icon(c)} |`),
+                '',
+              ];
+            };
+
+            // ── Failing detail ────────────────────────────────────────────
+            const failing = allChecks.filter(c =>
+              c.status === 'completed' &&
+              !['success','neutral','skipped'].includes(c.conclusion)
+            );
+            const pending = allChecks.filter(c => c.status !== 'completed');
+
+            const overallOk = failing.length === 0 && pending.length === 0;
+            const headline  = overallOk
+              ? `## ✅ All checks clear — ${allChecks.filter(c=>c.conclusion==='success').length} passing`
+              : `## ⛔ ${failing.length} failing · ${pending.length} pending`;
+
+            const failDetail = failing.length > 0 ? [
+              '### Failing',
+              '',
+              ...failing.map(c => `- ⛔ **${c.name}** — ${c.conclusion}${c.output?.title ? `: ${c.output.title}` : ''}`),
+              '',
+            ] : [];
+
+            const lines = [
+              headline,
+              '',
+              `> *PR #${prNum} — ${pr.title}*`,
+              `> Head: \`${pr.head.sha.slice(0,7)}\``,
+              '',
+              ...failDetail,
+              ...renderSection('Security & Quality', security),
+              ...renderSection('Build & Test', build),
+              ...renderSection('Other', other),
+              '---',
+              `*⊕ Radix Review Consolidator · ${SYMBOL}*`,
+            ];
+
+            const body = lines.join('\n');
+
+            // Upsert
+            const existing = await github.paginate(github.rest.issues.listComments, {
+              owner, repo, issue_number: prNum, per_page: 100,
+            });
+            const prev = existing.find(c =>
+              c.user.login === 'github-actions[bot]' && c.body.includes('Review Consolidator')
+            );
+            if (prev) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: prev.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number: prNum, body });
+            }
+
+# ♓🛠️⊕-radix_consolidator_v1
