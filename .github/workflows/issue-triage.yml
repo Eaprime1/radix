@@ -1,0 +1,190 @@
+# Radix — Issue Triage
+#
+# Fires on every new issue. Checks quality, routes to action:
+#   - Clear bug report   → labels + posts investigation comment
+#   - Clear concept/idea → labels + posts concept intake template
+#   - Insufficient info  → labels + posts structured question set
+#   - Security flag      → labels + directs to private disclosure
+#
+# No external API required. Pure github-script.
+name: Radix — Issue Triage
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Triage issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner  = context.repo.owner;
+            const repo   = context.repo.repo;
+            const issue  = context.payload.issue;
+            const num    = issue.number;
+            const title  = issue.title || '';
+            const body   = issue.body  || '';
+            const author = issue.user.login;
+
+            const SYMBOL = '♓⊕';
+
+            // ── Helpers ────────────────────────────────────────────────────
+            const hasSection = (heading) =>
+              new RegExp(`##\\s+${heading}`, 'i').test(body);
+
+            const bodyWords = body.replace(/```[\s\S]*?```/g, '')
+                                  .replace(/<!--[\s\S]*?-->/g, '')
+                                  .trim()
+                                  .split(/\s+/).filter(Boolean).length;
+
+            // ── Classify ───────────────────────────────────────────────────
+            const isSecurity = /\b(vuln|cve|exploit|injection|xss|sqli|rce|secret|credential|token leak)\b/i.test(title + ' ' + body);
+            const isBug      = /\b(bug|broken|error|fail|crash|not work|regression|wrong)\b/i.test(title);
+            const isConcept  = /\b(concept|idea|shadow|emerging|proposal|add|new)\b/i.test(title);
+            const hasMission = hasSection('Intent') || hasSection('Summary') || hasSection('What Arrived');
+            const isThin     = bodyWords < 20;
+
+            // ── Ensure labels exist ────────────────────────────────────────
+            const ensureLabel = async (name, color, description) => {
+              try {
+                await github.rest.issues.getLabel({ owner, repo, name });
+              } catch {
+                try {
+                  await github.rest.issues.createLabel({ owner, repo, name, color, description });
+                } catch {}
+              }
+            };
+            await Promise.all([
+              ensureLabel('triage',   'e4e669', 'Needs triage'),
+              ensureLabel('bug',      'd73a4a', 'Something broken'),
+              ensureLabel('concept',  '0075ca', 'Concept or idea'),
+              ensureLabel('security', 'ee0701', 'Security concern'),
+              ensureLabel('needs-info','cccccc', 'Needs more information'),
+            ]);
+
+            // ── Security fast-path ─────────────────────────────────────────
+            if (isSecurity) {
+              await github.rest.issues.addLabels({ owner, repo, issue_number: num, labels: ['security', 'triage'] });
+              await github.rest.issues.createComment({
+                owner, repo, issue_number: num,
+                body: [
+                  `## ⊕ Security flag`,
+                  '',
+                  `@${author} — this issue contains security-sensitive terms.`,
+                  '',
+                  'If this is a vulnerability report, please close this issue and use the repository\'s **Security** tab → **Report a vulnerability** to disclose privately.',
+                  '',
+                  'If this is not a security issue, ignore this comment — triage will proceed normally.',
+                  '',
+                  '---',
+                  `*⊕ Radix triage · ${SYMBOL}*`,
+                ].join('\n'),
+              });
+              return;
+            }
+
+            // ── Thin / missing info ────────────────────────────────────────
+            if (isThin && !hasMission) {
+              await github.rest.issues.addLabels({ owner, repo, issue_number: num, labels: ['needs-info', 'triage'] });
+              await github.rest.issues.createComment({
+                owner, repo, issue_number: num,
+                body: [
+                  `## ⊕ More information needed`,
+                  '',
+                  `@${author} — to route this correctly, a few questions:`,
+                  '',
+                  '1. **What are you seeing?** Describe the current behavior.',
+                  '2. **What did you expect?** Describe the intended behavior.',
+                  '3. **Which part of the system is affected?** (BBS UI component, concept system, workflow, other)',
+                  '4. **Steps to reproduce** (if applicable)',
+                  '',
+                  'Once answered, remove the `needs-info` label and triage will re-run.',
+                  '',
+                  '---',
+                  `*⊕ Radix triage · ${SYMBOL}*`,
+                ].join('\n'),
+              });
+              return;
+            }
+
+            // ── Concept intake ─────────────────────────────────────────────
+            if (isConcept && !isBug) {
+              await github.rest.issues.addLabels({ owner, repo, issue_number: num, labels: ['concept', 'triage'] });
+              await github.rest.issues.createComment({
+                owner, repo, issue_number: num,
+                body: [
+                  `## ⊕ Concept intake`,
+                  '',
+                  `The shadow receives this.`,
+                  '',
+                  'To develop this concept, open a PR adding a file under `concepts/` with:',
+                  '',
+                  '```markdown',
+                  '---',
+                  'title: Your concept title',
+                  'status: shadow',
+                  'entered: YYYY-MM-DD',
+                  '---',
+                  '',
+                  '## What it is',
+                  '## Why it matters',
+                  '## Current form',
+                  '## Open questions',
+                  '## Connections',
+                  '```',
+                  '',
+                  'Status starts at `shadow`. It graduates when it has an implementation home.',
+                  '',
+                  '---',
+                  `*⊕ Radix triage · ${SYMBOL}*`,
+                ].join('\n'),
+              });
+              return;
+            }
+
+            // ── Bug report ─────────────────────────────────────────────────
+            if (isBug) {
+              await github.rest.issues.addLabels({ owner, repo, issue_number: num, labels: ['bug', 'triage'] });
+              await github.rest.issues.createComment({
+                owner, repo, issue_number: num,
+                body: [
+                  `## ⊕ Bug received`,
+                  '',
+                  `Logged. To claim this: comment \`claiming this\` and open a PR referencing \`closes #${num}\`.`,
+                  '',
+                  'The PR should include:',
+                  '- The fix',
+                  '- A note in **What Arrived** describing what changed and why',
+                  '',
+                  '---',
+                  `*⊕ Radix triage · ${SYMBOL}*`,
+                ].join('\n'),
+              });
+              return;
+            }
+
+            // ── General / other ────────────────────────────────────────────
+            await github.rest.issues.addLabels({ owner, repo, issue_number: num, labels: ['triage'] });
+            await github.rest.issues.createComment({
+              owner, repo, issue_number: num,
+              body: [
+                `## ⊕ Received`,
+                '',
+                `The shadow has logged this.`,
+                '',
+                'If this requires action, it will be routed. If you want to work on it, comment `claiming this`.',
+                '',
+                '---',
+                `*⊕ Radix triage · ${SYMBOL}*`,
+              ].join('\n'),
+            });
+
+# ♓🛠️⊕-radix_triage_v1
