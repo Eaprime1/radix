@@ -1,8 +1,10 @@
 exclude_paths:
   - ".agents/**"
+  - ".chatgpt/**"
   - ".claude/**"
   - ".codex/**"
   - ".copilot-GitHub/**"
+  - ".gemini/**"
   - "**/*.pdf"
   - "**/*.docx"
   - "**/*.jpg"
