@@ -43,10 +43,12 @@ jobs:
 
             const parseSection = (body, label) => {
               const safe = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-              const re = new RegExp(`##\\s+${safe}\\s*\\n([\\s\\S]*?)(?=\\n##\\s|$)`);
+              const re = new RegExp(`##\\s+${safe}\\s*\\n([\\s\\S]*?)(?=\\n##\\s|\\n-{3,}[ \\t]*(?:\\n|$)|$)`);
               const m  = body.match(re);
               if (!m) return null;
-              const txt = m[1].replace(/<!--[\s\S]*?-->/g, '').trim();
+              // Drop comments and any trailing horizontal rule — same parser as
+              // finalize-pr.yml, so both paths stop at a `---` separator.
+              const txt = m[1].replace(/<!--[\s\S]*?-->/g, '').replace(/\n\s*-{3,}\s*$/, '').trim();
               return txt.length > 3 ? txt : null;
             };
 
