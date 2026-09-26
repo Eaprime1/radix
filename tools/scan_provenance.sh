@@ -2,8 +2,8 @@
 # Advisory check: do newly-added .md files carry a Prima-clock provenance stamp?
 # Not a linter, not a blocker. Reports what's missing so it can be added by hand.
 #
-# Prima-clock format already in use across the repo (see prima-clock/registry.md,
-# LICENSE.md, NOTICE.md, valuation/*.md): a "Prima-clock:" line containing one or
+# Prima-clock format (ported from custos, where it is used across prima-clock/,
+# valuation/ and pr-journeys/): a "Prima-clock:" line containing one or
 # two 12-digit YYYYMMDDHHMM stamps, e.g.
 #   Prima-clock: 202608021015
 #   Prima-clock: 202607290200 → 202607290523 | Iteration: Blackjack 21 | ...
